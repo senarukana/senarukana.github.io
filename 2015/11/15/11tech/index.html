@@ -15,7 +15,7 @@
 <meta property="og:image" content="http://yoursite.com/image/flow_control_result.png">
 <meta property="og:image" content="http://yoursite.com/image/hot_key_process.png">
 <meta property="og:image" content="http://yoursite.com/image/hot_key_penetration.png">
-<meta property="og:updated_time" content="2015-11-15T13:43:13.000Z">
+<meta property="og:updated_time" content="2015-11-15T13:47:08.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="缓存服务如何应对双11">
 <meta name="twitter:description" content="每年一度的双11已经过完，相比往年不同今年有幸参加了双11全过程。我所在的缓存团队承担着双11很重要的职责，负责存储商品库存、全站用户Session、购物车等峰值QPS上千万级别的大业务。值得骄傲的是，团队的服务除了在0点时极短时间内对购物车和无线业务实施了限流，整个过程异常稳定。关于如何架构亿万级别QPS系统或者秒杀系统，之前在网络上已经讨论的很多，主要涉及负载均衡、CDN、缓存、静态化、降级、">
@@ -126,14 +126,14 @@
 <p>由于Collector在上述限流处于核心地位，为了保证其高可用，每个集群启用两台彼此不交互的Collector。<br>每次实例将访问流量推送给两个Collector，它们都会进行计算，并推送限流结果。数据服务器收到任意一个限流结果，都会进行流控。</p>
 <h4 id="1-2-2_客户端实现">1.2.2 客户端实现</h4><p>在客户端，客户会维护一个限流窗口值Threshold，并根据服务器推送的限流状态，来调整该值。其具体的计算方式如下：<br>初始时该窗口值为0。当收到服务器Up限流命令时，会提高限流值。Keep时，保持该值。Down则降低限流值。其公式为：<br><figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Threshold = Threshold + UP_FACTOR*(MAX_THRESHOLD-Threshold)&#10;Threshold = Threshold + DOWN_FACTOR*Threashold</span><br></pre></td></tr></table></figure></p>
 <p>计算出该值后，在每次访问时，都会首先random(0, MAX_THRESHOLD)的值，来与当前Threshold值进行比较，如果低于它则直接返回错误。</p>
-<p>在实际运行中我们设置上下因子为0.25，MAX_THRESHOLD为1000。通过服务端和客户端相结合的方式，我们实例资源使用量处于低水位线到高水位线之间的效果，真实数据如下图：<br><img src="/image/flow_control_result.png" alt="流量控制效果图"></p>
+<h4 id="1-2-3_线上运行效果">1.2.3 线上运行效果</h4><p>在实际运行中我们设置上下因子为0.25，MAX_THRESHOLD为1000。通过服务端和客户端相结合的方式，我们实例资源使用量处于低水位线到高水位线之间的效果，真实数据如下图：<br><img src="/image/flow_control_result.png" alt="流量控制效果图"></p>
 <h2 id="2-_热点Key问题">2. 热点Key问题</h2><p>大促期间的另一个常见问题是Key热点问题。部分Key(可能对应用与某个促销商品)集中于同一机器量，使得所有流量涌向同一机器，成为系统的瓶颈。该问题的挑战在于它无法通过增加机器容量来解决。</p>
 <p>解决该问题的办法有很多，最有效果的方式是在业务层对热点数据进行切分。但对于有些情况，如小米双11促销，单台小米机型QPS超过百万，业务无法进行切分。由于此问题通常还具有一个性质，读多写少。一种常见的解决办法是多写策略。如搭建备用集群，写的时候双写或者异步同步，读的时候就相应的能从多个地方读。但上述方案对于双11这种读、写压力都很大的场景，还是略显不足。<br>这里我们采用了客户端缓存方案来解决该问题。此方案对于部分实时性要求不高的应用有着显著的提升。</p>
 <p>客户端缓存方案包含两个部分，服务端热点统计和客户端本地缓存。<br>服务端热点统计是用于探测服务当前热点，客户端缓存是将服务端的热点数据存于本地，待下次访问时直接返回。下面将详细介绍两个模块的具体设计。</p>
 <h3 id="2-1_服务端热点统计">2.1 服务端热点统计</h3><p>服务端热点Key统计的办法有很多，最常见的办法是直接抽样N次请求取出Topk让客户端进行缓存，但该方法存在一个很大的问题：Topk的准确性，依赖于抽样的次数。较少的抽样次数，可能导致热点key不准确，且频繁发生变化。而较多的抽样，可能提升热点key探测花费的时间、导致热点已过，同时还提高了内存占用。<br>我们需要一个自适应的抽样办法，能在热点出现时及时发现。这里我们提出了一种双层抽样办法。它分为采样阶段和定位阶段来探测热点key，最后定时反馈热点key给客户端。其具体流程如下。<br><img src="/image/hot_key_process.png" alt="hot_key_sample"></p>
 <h4 id="2-1-1_采样阶段">2.1.1 采样阶段</h4><p>我们首先将数据空间划分成1024个桶，记录每个桶的命中次数。为了提升性能，每次采样，各个线程都是采用try_lock的方式获取锁，只有拿到锁的线程才会进行统计，否则直接放行。<br>我们采样一个较小的样本N，通过采样桶的<em>标准差</em>(反映了数据的离散程度)来确定是否存在热点。其具体的判断标准为，当标准差大于整体均值的K倍时，我们认为存在热点。此时选取命中次数最多的桶作为候选桶，进入定位阶段。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">if Deviation &#62; Avg(Count) * K:&#10;    Candidate = MAX&#123;Count i&#125;</span><br></pre></td></tr></table></figure></p>
 <h4 id="2-1-2_定位阶段">2.1.2 定位阶段</h4><p>当定位到热桶后，我们对该桶里命中的Key继续进行采样，采样M次(M &lt; N)。当采样完成后，将选出大于T次的key作为热点key，放入服务器的热点Key LRUCache中，清0进行下一次定位。<br>在程序的运行过程中，采样阶段和定位阶段是同时进行的，当采样N次结束后，发现热点Key发生了变化，将会使得定位阶段重新开始。</p>
-<p>在实际过程中，我们选取N=10000，M=1000，K=1.5，T=100。</p>
+<h4 id="2-1-3_线上运行效果">2.1.3 线上运行效果</h4><p>在实际过程中，我们选取N=10000，M=1000，K=1.5，T=100。</p>
 <p>两次采样的方法，大幅减少了抽样次数，当出现热点时，我们通常能在2*N次采样即可确定热点，占用的内存资源也较少。最后对于我们的系统，热点key的探测还要结合迁移功能。当检测到某个热点key时，在使用客户端缓存的同时，我们可能还希望能将该热点迁移到其它机器。上述热点key的办法，能有效帮助我们定位到一个热点桶，当发现桶热点持续时，我们可以发出迁移指令，迁移或者复制热点数据到其它机器。</p>
 <h3 id="客户端的热点key缓存">客户端的热点key缓存</h3><p>开启了热点key缓存的客户端将定时向服务器咨询热点的key列表，并缓存在本地的缓存中。对于每次读请求，将首先检查key是否存在于本地缓存中，如果存在则直接返回。其具体流程如下：</p>
 <p>为了更好的理解这个过程，有一下几个要点需要注意：</p>
