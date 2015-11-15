@@ -15,7 +15,7 @@
 <meta property="og:image" content="http://yoursite.com/image/flow_control_result.png">
 <meta property="og:image" content="http://yoursite.com/image/hot_key_process.png">
 <meta property="og:image" content="http://yoursite.com/image/hot_key_penetration.png">
-<meta property="og:updated_time" content="2015-11-15T13:40:59.000Z">
+<meta property="og:updated_time" content="2015-11-15T13:43:13.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="缓存服务如何应对双11">
 <meta name="twitter:description" content="每年一度的双11已经过完，相比往年不同今年有幸参加了双11全过程。我所在的缓存团队承担着双11很重要的职责，负责存储商品库存、全站用户Session、购物车等峰值QPS上千万级别的大业务。值得骄傲的是，团队的服务除了在0点时极短时间内对购物车和无线业务实施了限流，整个过程异常稳定。关于如何架构亿万级别QPS系统或者秒杀系统，之前在网络上已经讨论的很多，主要涉及负载均衡、CDN、缓存、静态化、降级、">
@@ -145,12 +145,10 @@
 <li>容量逐出策略：它是为了限制本地缓存占用的内存大小。当缓存内存超过该阈值时，会采用LRU策略逐出。在实际运行中，客户端设置的本地容量通常较小，默认只能存30个key，服务端稍大一些为100个。LRU的实现我们用的是google的ConcurrentLinkedHashMap，它对于多线程更新时相比LinkedHashMap性能更好，读写性能提升20%。它更新LRU链表是异步的，且合并了多次读操作需要的更新。</li>
 <li><p>过期淘汰策略：它是为了限制服务器与客户端之间的数据不一致的窗口。当客户端向服务端读热点key操作成功后，在添加入本地缓存表的同时，会设置一个在过期时间(默认30ms)。一旦过期，客户端将需要重新从服务端获取该key值。</p>
 </li>
-<li><p>3.防止击穿<br>应用使用客户端访问我们服务时时，大多是多线程访问。试想当多个线程发现某个key的存活超过过期时间时，会做什么处理呢？会有大量请求击穿本地缓存，同时访问后端服务器，如下图。<br><img src="/image/hot_key_penetration.png" alt="热点key穿透"></p>
+<li><p>3.防止击穿<br>应用使用客户端访问我们服务时时，大多是多线程访问。试想当多个线程发现某个key的存活超过过期时间时，会做什么处理呢？会有大量请求击穿本地缓存，同时访问后端服务器，如下图。<br><img src="/image/hot_key_penetration.png" alt="热点key穿透"><br>为了解决这样的击穿问题，这里加了一个过期时间续期的操作。当多个线程并发读取某个key1时，第一个竞争到锁的线程会判断key的过期时间，如果已经过期，则返回null，并对该key续期（即延长过期时间），由于返回的是null，该线程会击穿Localcache继续向server发起请求，并更新本地Localcache。其他线程访问key时，已经是续期之后，这些线程的访问该key时，就不会发现已经过期，读到的是老的value，等到第一个线程完成server端key-value到Localcache的更新结束后，所有线程都将读到新value。这样的好处是不会在某个key过期时间一到就击穿Localcache，并大量的访问server，对server造成压力。<br>如图，只有thread-1会击穿Localcache，其他线程拿到的要么是老的value，要么是最新value。</p>
 </li>
-</ul>
-<p>为了解决这样的击穿问题，这里加了一个过期时间续期的操作。当多个线程并发读取某个key1时，第一个竞争到锁的线程会判断key的过期时间，如果已经过期，则返回null，并对该key续期（即延长过期时间），由于返回的是null，该线程会击穿Localcache继续向server发起请求，并更新本地Localcache。其他线程访问key时，已经是续期之后，这些线程的访问该key时，就不会发现已经过期，读到的是老的value，等到第一个线程完成server端key-value到Localcache的更新结束后，所有线程都将读到新value。这样的好处是不会在某个key过期时间一到就击穿Localcache，并大量的访问server，对server造成压力。<br>如图，只有thread-1会击穿Localcache，其他线程拿到的要么是老的value，要么是最新value。</p>
-<ul>
-<li>4.拷贝机制<br>当客户端需要将获取的热点key对应的value写入到本地缓存时，很多场景需要深拷贝，以防止同一个对象在本地缓存之外被修改，从而造成本地缓存中的value与后端server的value不一致。<br>但是深拷贝操作本身很耗费CPU，如果每次往本地缓存中写value都需要clone的话，非常影响性能。并且我们观察发现，大部分用户在一段时间内访问一个key的机会只有一次，比如获取一个商品的所有规格信息，将需要一个for迭代循环，每次访问不同(key + i)，就需要把每个key对应的value，拷贝一次再写入本地缓存中。<br>为了提升拷贝效率，我们在第一次读取到热点key的值时，只把null当做值写入缓存。只有当本地缓存中该key还有第二次机会被访问时，客户端拿到null就会重新去服务器读最新数据，这时我们才真实的将读到的value并深拷贝到本地缓存中。因为我们认为该key有第二次读到就会有更多次机会被读到。</li>
+<li><p>4.拷贝机制<br>当客户端需要将获取的热点key对应的value写入到本地缓存时，很多场景需要深拷贝，以防止同一个对象在本地缓存之外被修改，从而造成本地缓存中的value与后端server的value不一致。<br>但是深拷贝操作本身很耗费CPU，如果每次往本地缓存中写value都需要clone的话，非常影响性能。并且我们观察发现，大部分用户在一段时间内访问一个key的机会只有一次，比如获取一个商品的所有规格信息，将需要一个for迭代循环，每次访问不同(key + i)，就需要把每个key对应的value，拷贝一次再写入本地缓存中。<br>为了提升拷贝效率，我们在第一次读取到热点key的值时，只把null当做值写入缓存。只有当本地缓存中该key还有第二次机会被访问时，客户端拿到null就会重新去服务器读最新数据，这时我们才真实的将读到的value并深拷贝到本地缓存中。因为我们认为该key有第二次读到就会有更多次机会被读到。</p>
+</li>
 </ul>
 <h2 id="备案">备案</h2><p>和很多人强调过的一样，对于海量并发问题，相比技术手段，前期的准备和策略制定才是决定性的。<br>像去年双11小米抢购，其单品在评估时预计将超过30wQPS，而淘宝之前的大促最高才几千，如此大的压力其解决办法最终是采用了错峰选择00:30开抢，同时设置了答题环节，来避免交易压力。<br>相较业务线的策略制定，对于我们后端缓存系统，准备工作主要包含三个方面：</p>
 <ol>
