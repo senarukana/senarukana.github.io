@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>Google File System | Zhe Li&#39;s Blog</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="GFSGFS包含两个组件，Master和Chunk Server。 Master负责管理元数据信息，DataServer负责数据文件的存储。
+元数据服务器：MasterHDFS采用中心节点Master存储系统的元数据信息。Master维护了文件及chunk命名空间、文件到chunk之间的映射、chunk副本的位置信息。其中chunk副本的位置信息不需要持久化，可以通过ChunkServer汇报获取">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Google File System">
+<meta property="og:url" content="http://yoursite.com/2015/03/06/google-file-system/index.html">
+<meta property="og:site_name" content="Zhe Li's Blog">
+<meta property="og:description" content="GFSGFS包含两个组件，Master和Chunk Server。 Master负责管理元数据信息，DataServer负责数据文件的存储。
+元数据服务器：MasterHDFS采用中心节点Master存储系统的元数据信息。Master维护了文件及chunk命名空间、文件到chunk之间的映射、chunk副本的位置信息。其中chunk副本的位置信息不需要持久化，可以通过ChunkServer汇报获取">
+<meta property="og:image" content="http://yoursite.com/image/gfs-read.png">
+<meta property="og:image" content="http://yoursite.com/image/gfs-read.png">
+<meta property="og:updated_time" content="2015-09-29T12:24:44.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Google File System">
+<meta name="twitter:description" content="GFSGFS包含两个组件，Master和Chunk Server。 Master负责管理元数据信息，DataServer负责数据文件的存储。
+元数据服务器：MasterHDFS采用中心节点Master存储系统的元数据信息。Master维护了文件及chunk命名空间、文件到chunk之间的映射、chunk副本的位置信息。其中chunk副本的位置信息不需要持久化，可以通过ChunkServer汇报获取">
+  
+  
+    <link rel="icon" href="favicon.png">
+  
+  
+ <link href='https://fonts.googleapis.com/css?family=Open+Sans:400italic,400,600' rel='stylesheet' type='text/css'>
+ <link href='https://fonts.googleapis.com/css?family=Source+Code+Pro' rel='stylesheet' type='text/css'>
+
+
+  <link rel="stylesheet" href="/css/style.css" type="text/css">
+  <link rel="stylesheet" href="/font-awesome/css/font-awesome.min.css" type="text/css">
+  
+
+  
+
+  
+</head>
+<body>
+  <div id="container">
+    <header id="header">
+  <div id="header-main" class="header-inner">
+    <div class="outer">
+      <a href="/" id="logo"><i class="logo" style="background-image: url(/css/images/logo.png)"></i><span class="site-title">Zhe Li&#39;s Blog</span></a>
+      <nav id="main-nav">
+        
+          <a class="main-nav-link" href="/.">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+          <a class="main-nav-link" href="/categories">Categories</a>
+        
+          <a class="main-nav-link" href="/tags">Tags</a>
+        
+      </nav>
+      
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" results="0" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit"> </button><input type="hidden" name="sitesearch" value="http://yoursite.com"></form>
+      </div>
+    </div>
+  </div>
+  <div id="main-nav-mobile" class="header-sub header-inner">
+    <table class="menu outer">
+      <tr>
+        
+          <td><a class="main-nav-link" href="/.">Home</a></td>
+        
+          <td><a class="main-nav-link" href="/archives">Archives</a></td>
+        
+          <td><a class="main-nav-link" href="/categories">Categories</a></td>
+        
+          <td><a class="main-nav-link" href="/tags">Tags</a></td>
+        
+        <td>
+          <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" results="0" class="search-form-input" placeholder="Search"><input type="hidden" name="sitesearch" value="http://yoursite.com"></form>
+        </td>
+      </tr>
+    </table>
+  </div>
+</header>
+
+    <div class="outer">
+      
+      <section id="main"><article id="post-google-file-system" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-inner">
+    
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      Google File System
+    </h1>
+  
+
+        <div class="article-meta">
+          
+  <div class="article-date">
+    <i class="fa fa-calendar"></i>
+    <a href="/2015/03/06/google-file-system/">
+      <time datetime="2015-03-06T05:01:45.000Z" itemprop="datePublished">2015-03-06</time>
+    </a>
+  </div>
+
+
+          
+        </div>
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+                
+        <h1 id="GFS">GFS</h1><p>GFS包含两个组件，Master和Chunk Server。 Master负责管理元数据信息，DataServer负责数据文件的存储。</p>
+<h2 id="元数据服务器：Master">元数据服务器：Master</h2><p>HDFS采用中心节点Master存储系统的元数据信息。Master维护了文件及chunk命名空间、文件到chunk之间的映射、chunk副本的位置信息。其中chunk副本的位置信息不需要持久化，可以通过ChunkServer汇报获取。</p>
+<h3 id="元数据大小">元数据大小</h3><p>为了减小元数据信息，GFS限制每个文件大小最小为64MB。同时限制每个文件的元数据大小仅为64字节，仅用于存储块对应的ChunkServerID。文件Chunk块的元数据如文件大小、磁盘位移都交由Chunk Server管理。最大限度减小元数据大小。<br>那么我们可以得到1PB数据的Chunk元信息不超过:<br>1PB / 64MB * 64 = 1GB<br>这样保证了内存不会成为GFS的瓶颈<br><a id="more"></a> </p>
+<h2 id="数据的读写流程">数据的读写流程</h2><h3 id="数据读取">数据读取</h3><p><img src="/image/gfs-read.png" alt="数据读取"></p>
+<ol>
+<li>客户端向Master请求文件对应的数据服务器位置</li>
+<li>Master返回文件对应的ChunkServer版本号以及ChunkServer地址</li>
+<li>客户端向ChunkServer发送文件读取请求。</li>
+<li>ChunkServer返回结果。</li>
+</ol>
+<p>如果每次请求都需经由Master节点，那么Master的压力极大，单个Master很难处理海量并发请求。<br>GFS采用客户端缓存机制，在请求某个文件后，将记录该文件对应ChunkServer地址，下次再请求时，无需经过Master。<br>但有一种可能，在下次请求之前该文件的位置由于迁移等原因发生了变化，为了避免客户端读取到错误信息，Master节点同时反悔了版本号。每次请求时客户端会带着ChunkServer的版本信息，如果ChunkServer发生了迁移，版本号将发生变化，此时ChunkServer将拒绝该请求。<br>客户端此时将重新请求Master节点，获取新的文件地址信息。</p>
+<h3 id="数据写入">数据写入</h3><p><img src="/image/gfs-read.png" alt="数据写入"><br>写入时，客户端首先仍将请求Master节点，接着向三台服务器发送写数据请求。写数据分为两部：</p>
+<ol>
+<li>服务器将文件数据缓存在内存中。</li>
+<li>将缓存在内存中的数据写入磁盘。<br>以上两个步骤，客户端需要确保三台服务器同时完成，如果之间发生错误，此次操作都将失败。</li>
+</ol>
+<p>##容错</p>
+<h3 id="文件错误">文件错误</h3><p>对于每个文件Chunk将其切分成多个block，每个block64KB。在写入数据时，以block为单位计算checksum存储在block数据段之前。<br>检查错误包含两种方法：</p>
+<ol>
+<li>在读取数据时，检查读取的文件内容和checksum是否符合。<br>如果不符合，说明文件内容出错，或者checksum出错。不管哪种错误都说明block存在问题。</li>
+<li>后端线程定时扫描</li>
+</ol>
+<p>当数据服务器发现文件出现错误时，会通知元数据服务器，请求从其它节点恢复文件。元数据服务器收到请求后，将告知它其它节点的地址。数据服务器拿到该地址后，将像其它数据节点发送数据请求。</p>
+<h3 id="数据服务器出错">数据服务器出错</h3><p>当数据服务器出错时，该服务器上的所有文件都将不可用。为了确保不因为单机故障而导致而导致部分文件不可读，采用写多份的办法，将文件存储在多个区域。对于每个文件HDFS默认写3份，并且推荐其中两台主机在一个机房，第三台机器在另外机房从而确保容灾。</p>
+<p>元数据服务器定时与数据服务器发送心跳，维护数据服务器的可用状态。当该数据服务器超过指定时间仍然未恢复时，将开启恢复流程。读取该服务器上所有的数据文件的元数据信息，将数据文件重新分配到其它节点。</p>
+<h3 id="元数据服务器出错">元数据服务器出错</h3><p>Master采用主从双节点，主节点在收到元数据变更请求后会将操作日志复制到从节点。并由分布式协调系统Chubby监听主节点状态，自动实现现主从切换。</p>
+<h2 id="其它">其它</h2><h3 id="数据热点">数据热点</h3><p>每次对文件进行数据操作时，数据服务器会记录文件的操作频率，并在与Master发送心跳时汇报该信息。<br>Master汇总所有数据服务器的访问信息以及服务器的负载信息。当发现某个节点或者文件访问过热时，会开启迁移流程。将某些文件从一个服务器迁移到其它服务器，避免服务器过载。</p>
+<h3 id="延迟删除">延迟删除</h3><p>用户删除文件后，GFS并立即删除该文件，而是在元数据中将文件改名为一个隐藏的名字，并且包含一个删除的时间戳。<br>Master定时检查，如果发现文件删除超过一段时间，那么可把文件从内存元数据中删除，以后ChunkServer和Master的心跳信息中，每一个ChunkServer都将报告子集的chunk集合，Master会告知chunk已经不存在，Chunk会释放这些副本。垃圾回收一般在负载较低时执行，比如凌晨1点。</p>
+<p>#讨论</p>
+<ol>
+<li>单Master的设计是可行的，不仅简化了系统，而且能够好地实现一致性。</li>
+<li>基于性能考虑，提出了追加一致性，而不允许修改，通过租约减少Master的负载，通过流水线复制多个副本减少延迟。通过写时复制BTREE，保存元数据。</li>
+</ol>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://yoursite.com/2015/03/06/google-file-system/" data-id="cih0i58kl001chqw4dvwgcogw" class="article-share-link">分享到</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/system/">system</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2015/03/08/minimum-palindrome/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">上一篇</strong>
+      <div class="article-nav-title">
+        
+          增加最少字符变成回文
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2015/03/01/kafka/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">下一篇</strong>
+      <div class="article-nav-title">kafka</div>
+    </a>
+  
+</nav>
+
+
+  
+</article>
+
+
+</section>
+      
+        <aside id="sidebar">
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">最新文章</h3>
+    <div class="widget">
+      <ul id="recent-post" class="no-thumbnail">
+        
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category"></p>
+              <p class="item-title"><a href="/2015/11/15/11tech/" class="title">缓存服务如何应对双11</a></p>
+              <p class="item-date"><time datetime="2015-11-15T11:03:44.000Z" itemprop="datePublished">2015-11-15</time></p>
+            </div>
+          </li>
+        
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category"></p>
+              <p class="item-title"><a href="/2015/09/30/git-undo/" class="title">git撤销</a></p>
+              <p class="item-date"><time datetime="2015-09-30T13:05:59.000Z" itemprop="datePublished">2015-09-30</time></p>
+            </div>
+          </li>
+        
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category"></p>
+              <p class="item-title"><a href="/2015/09/27/pytest-fixture/" class="title">pytest fixture</a></p>
+              <p class="item-date"><time datetime="2015-09-27T01:02:29.000Z" itemprop="datePublished">2015-09-27</time></p>
+            </div>
+          </li>
+        
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category"></p>
+              <p class="item-title"><a href="/2015/09/16/ssh/" class="title">ssh config</a></p>
+              <p class="item-date"><time datetime="2015-09-16T11:20:16.000Z" itemprop="datePublished">2015-09-16</time></p>
+            </div>
+          </li>
+        
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category"></p>
+              <p class="item-title"><a href="/2015/08/29/traffic-control/" class="title">云服务的流控设计</a></p>
+              <p class="item-date"><time datetime="2015-08-29T08:02:34.000Z" itemprop="datePublished">2015-08-29</time></p>
+            </div>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+    
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">标签</h3>
+    <div class="widget">
+      <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/algorithm/">algorithm</a><span class="tag-list-count">14</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/life/">life</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/system/">system</a><span class="tag-list-count">12</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tools/">tools</a><span class="tag-list-count">3</span></li></ul>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">归档</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/11/">November 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/09/">September 2015</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/08/">August 2015</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/06/">June 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/05/">May 2015</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/04/">April 2015</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/03/">March 2015</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/02/">February 2015</a><span class="archive-list-count">12</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/01/">January 2015</a><span class="archive-list-count">5</span></li></ul>
+    </div>
+  </div>
+
+  
+  <div id="toTop" class="fa fa-chevron-up"></div>
+</aside>
+      
+    </div>
+    <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      &copy; 2015 Zhe Li<br>
+      Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>. Theme by <a href="http://github.com/ppoffice">PPOffice</a>
+    </div>
+  </div>
+</footer>
+    
+
+
+
+ <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+
+
+
+
+  <link rel="stylesheet" href="/fancybox/jquery.fancybox.css" type="text/css">
+  <script src="/fancybox/jquery.fancybox.pack.js" type="text/javascript"></script>
+
+
+<script src="/js/script.js" type="text/javascript"></script>
+
+  </div>
+</body>
+</html>

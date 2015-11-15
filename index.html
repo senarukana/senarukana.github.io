@@ -1,0 +1,807 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>Zhe Li&#39;s Blog</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="Zhe Li">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Zhe Li's Blog">
+<meta property="og:url" content="http://yoursite.com/index.html">
+<meta property="og:site_name" content="Zhe Li's Blog">
+<meta property="og:description" content="Zhe Li">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Zhe Li's Blog">
+<meta name="twitter:description" content="Zhe Li">
+  
+  
+    <link rel="icon" href="favicon.png">
+  
+  
+ <link href='https://fonts.googleapis.com/css?family=Open+Sans:400italic,400,600' rel='stylesheet' type='text/css'>
+ <link href='https://fonts.googleapis.com/css?family=Source+Code+Pro' rel='stylesheet' type='text/css'>
+
+
+  <link rel="stylesheet" href="/css/style.css" type="text/css">
+  <link rel="stylesheet" href="/font-awesome/css/font-awesome.min.css" type="text/css">
+  
+
+  
+
+  
+</head>
+<body>
+  <div id="container">
+    <header id="header">
+  <div id="header-main" class="header-inner">
+    <div class="outer">
+      <a href="/" id="logo"><i class="logo" style="background-image: url(/css/images/logo.png)"></i><span class="site-title">Zhe Li&#39;s Blog</span></a>
+      <nav id="main-nav">
+        
+          <a class="main-nav-link" href="/.">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+          <a class="main-nav-link" href="/categories">Categories</a>
+        
+          <a class="main-nav-link" href="/tags">Tags</a>
+        
+      </nav>
+      
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" results="0" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit"> </button><input type="hidden" name="sitesearch" value="http://yoursite.com"></form>
+      </div>
+    </div>
+  </div>
+  <div id="main-nav-mobile" class="header-sub header-inner">
+    <table class="menu outer">
+      <tr>
+        
+          <td><a class="main-nav-link" href="/.">Home</a></td>
+        
+          <td><a class="main-nav-link" href="/archives">Archives</a></td>
+        
+          <td><a class="main-nav-link" href="/categories">Categories</a></td>
+        
+          <td><a class="main-nav-link" href="/tags">Tags</a></td>
+        
+        <td>
+          <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" results="0" class="search-form-input" placeholder="Search"><input type="hidden" name="sitesearch" value="http://yoursite.com"></form>
+        </td>
+      </tr>
+    </table>
+  </div>
+</header>
+
+    <div class="outer">
+      
+      <section id="main">
+      <article id="post-11tech" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-inner">
+    
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2015/11/15/11tech/">缓存服务如何应对双11</a>
+    </h1>
+  
+
+        <div class="article-meta">
+          
+  <div class="article-date">
+    <i class="fa fa-calendar"></i>
+    <a href="/2015/11/15/11tech/">
+      <time datetime="2015-11-15T11:03:44.000Z" itemprop="datePublished">2015-11-15</time>
+    </a>
+  </div>
+
+
+          
+        </div>
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>每年一度的双11已经过完，相比往年不同今年有幸参加了双11全过程。我所在的缓存团队承担着双11很重要的职责，负责存储商品库存、全站用户Session、购物车等峰值QPS上千万级别的大业务。值得骄傲的是，团队的服务除了在0点时极短时间内对购物车和无线业务实施了限流，整个过程异常稳定。<br>关于如何架构亿万级别QPS系统或者秒杀系统，之前在网络上已经讨论的很多，主要涉及负载均衡、CDN、缓存、静态化、降级、限流、数据压缩等。但那些讨论往往面太广，趁着现在双11余韵还在，本篇文章将站在我们的键值存储服务Tair系统的角度来阐述，我们是如何应对双11的。</p>
+<h1 id="技术">技术</h1><p>对于双11这种大型促销，相比平时有超过10倍的流量压力，对于服务器将产生很大的压力和造成各种问题。体现在我们的缓存业务，主要涉及到两个，流量突增问题和热点Key问题。<br>
+        
+          <p class="article-more-link">
+            <a href="/2015/11/15/11tech/#more">Read More</a>
+          </p>
+        
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://yoursite.com/2015/11/15/11tech/" data-id="cih0k0avb0000rcw4386w5is3" class="article-share-link">分享到</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/system/">system</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+    
+      <article id="post-git-undo" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-inner">
+    
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2015/09/30/git-undo/">git撤销</a>
+    </h1>
+  
+
+        <div class="article-meta">
+          
+  <div class="article-date">
+    <i class="fa fa-calendar"></i>
+    <a href="/2015/09/30/git-undo/">
+      <time datetime="2015-09-30T13:05:59.000Z" itemprop="datePublished">2015-09-30</time>
+    </a>
+  </div>
+
+
+          
+        </div>
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+                
+        <p>在使用git时我们通常会因为一些特殊的原因或者错误的操作造成需要撤销过去的当前或者过去工作区的某个提交，本篇文章将介绍git提供的四种方法用于解决此问题。</p>
+<h2 id="1-_checkout">1. checkout</h2><p>checkout提供了一种安全的机制，用于将当前工作区切换成过去保存的工作区。它包含三个功能:</p>
+<ul>
+<li><p>1.checkout branch:<br>切换当前分支到指定分支上，这是我们最常用的，用于分支间的切换。另外-b参数可用于创建以当前分支作为基础创建一个新的分支。</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git checkout -b branch</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>2.checkout commit<br>将当前的工作区状态切换成过去某次commit时的工作区状态。该功能主要用于查看过去某次提交的内容。它背后的逻辑是将HEAD指针指向了过去的COMMIT，并不会对当前commit造成任何影响，如下图所示：<br><img src="/image/git-checkout-commit.png" alt="checkout"><br>举个例子，假设我们的项目状态如下：</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">&gt; git <span class="built_in">log</span> --oneline</span><br><span class="line"></span><br><span class="line">b7119f2 Continue doing crazy things</span><br><span class="line"><span class="number">872</span>fa7e Try something crazy</span><br><span class="line">a1e8fb5 Make some important changes to hello.py</span><br><span class="line"><span class="number">435</span>b61d Create hello.py</span><br><span class="line"><span class="number">9773</span>e52 Initial import</span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+<p>我们想看看435b61d提交时的工作区数据内容可以使用：<br><figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git checkout <span class="number">435</span>b61d</span><br></pre></td></tr></table></figure></p>
+<p>恢复到435b61d提交时的状态后，我们可以查看当时文件，以及做一些测试等工作。当完成我们的检查后，我们用下面命令，恢复当前工作区为最新的状态（这里我们假设处于master分支)。<br><figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git checkout master</span><br></pre></td></tr></table></figure></p>
+<ul>
+<li>3.checkout commit file<br>当我们只想查看过去某次提交的一个文件，可以使用上面的命令。此时git将会把当前file更新为过去某次提交的内容，并将其放入staged区中。如果我们想恢复该文件，可以使用下面命令,这时将更新file为最新HEAD的文件。<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git checkout HEAD file</span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+<h2 id="2-_revert">2. revert</h2><p>revert用于撤销过去某次提交。为了避免丢失commit历史信息，git将试图把revert提交的内容在当前提交undo。过程如图：<br><img src="/image/git-revert-commit.png" alt="revert commit"><br>例如,我们当前的git log如下：<br><figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">&gt; git <span class="built_in">log</span> --oneline</span><br><span class="line"></span><br><span class="line">a447eda add b</span><br><span class="line">a3197ff add a</span><br></pre></td></tr></table></figure></p>
+<p>此时我们想放弃a3197ff提交，删除a文件。 我们使用：<br><figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&gt; git revert a3197ff</span><br></pre></td></tr></table></figure></p>
+<p>此时将产生一次新的提交，它的操作是删除a文件。<br>但通常情况下，如果是修改文件，此时将会产生部分冲突，此时的处理和merge一样，处理完冲突后提交即可。<br>如果revert 某次commit发现提交的内容没有达到预期，此时可以使用：<br><figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&gt; git revert HEAD</span><br></pre></td></tr></table></figure></p>
+<p>恢复到此前HEAD状态。如果有冲突无法进行。可以使用后续将介绍到的reset:<br><figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git reset --hard HEAD~</span><br></pre></td></tr></table></figure></p>
+<h2 id="3-_reset">3. reset</h2><p>如果说revert提供了一种安全的方式撤销某次提交，那么reset则提供了一种危险的方式来撤销提交。<br>同checkout类似，它提供了多种方式：</p>
+<ul>
+<li>1.git reset file<br>用于将file从staged区移出</li>
+<li><p>2.git reset<br>将撤销staged区中所有的修改移出，但修改的内容将保留。<br>例如下面这个例子，git add a操作原先将a文件添加到了staged工作区，但是git reset将把a文件从staged工作区移出。此时a文件内容仍然保留。</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">&gt; <span class="built_in">echo</span> <span class="string">"haha"</span> &gt; a</span><br><span class="line">&gt; git add a</span><br><span class="line">&gt; git reset</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>3.git reset –hard<br>–hard将把处于staged工作区的所有修改恢复到HEAD的状态。同样是上面那个例子，执行git reset –hard之后，a文件将被删除(因为a文件在HEAD中并不存在)，并且无法像revert一样把文件找回，所以执行此命令需格外小心。</p>
+</li>
+<li>4.git reset commit<br>它的过程如图：<br><img src="/image/git-reset-commit.png" alt="reset-commit"><br>它试图将HEAD指到过去某次提交，并将此次提交之后的提交都删除。<br>例如，我们当前的git log如下：<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">&gt; ls</span><br><span class="line">a b c</span><br><span class="line">&gt; git <span class="built_in">log</span> --oneline</span><br><span class="line">c932fdb add c</span><br><span class="line">a447eda add b</span><br><span class="line">a3197ff add a</span><br><span class="line">&gt; git reset a3197ff</span><br><span class="line">&gt; git <span class="built_in">log</span> --oneline</span><br><span class="line">a3197ff add a</span><br><span class="line">&gt; ls</span><br><span class="line">a b c</span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+<p>执行reset命令之后，HEAD将指向a3197ff，b，c的提交记录都将被删除。但是b，c文件仍然保留。如果使用–hard参数，b,c文件都将随之消失。git reset –hard通常用于撤销提交。<br><figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">&gt; git reset --hard a3197ff</span><br><span class="line">HEAD is now at a3197ff a</span><br><span class="line">&gt; ls</span><br><span class="line">a</span><br></pre></td></tr></table></figure></p>
+<h2 id="4-_clean">4. clean</h2><p>git clean将删除工作区中所有untracked file。同linux rm命令一样，被清理的file将不能恢复，执行此命令需慎重。<br>此命令通常和git reset命令结合使用，它起到的效果和git reset –hard一样。</p>
+<h1 id="总结">总结</h1><p>文章分别介绍了checkout, revert, reset以及clean 4种方式撤销对当前工作区的修改。其中reset和clean较为危险，一旦执行数据将可能无法找回。做此操作时需要谨慎。</p>
+<h1 id="参考文章">参考文章</h1><p>git tutorial undo changes: <a href="https://www.atlassian.com/git/tutorials/undoing-changes" target="_blank" rel="external">https://www.atlassian.com/git/tutorials/undoing-changes</a></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://yoursite.com/2015/09/30/git-undo/" data-id="cih0i58kn001ehqw4r9dq65ma" class="article-share-link">分享到</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/tools/">tools</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+    
+      <article id="post-pytest-fixture" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-inner">
+    
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2015/09/27/pytest-fixture/">pytest fixture</a>
+    </h1>
+  
+
+        <div class="article-meta">
+          
+  <div class="article-date">
+    <i class="fa fa-calendar"></i>
+    <a href="/2015/09/27/pytest-fixture/">
+      <time datetime="2015-09-27T01:02:29.000Z" itemprop="datePublished">2015-09-27</time>
+    </a>
+  </div>
+
+
+          
+        </div>
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+                
+        <h1 id="fixture">fixture</h1><p>fixture是pytest特有的功能，它用pytest.fixture标识，定义在函数前面。在你编写测试函数的时候，你可以将此函数名称做为传入参数，pytest将会以依赖注入方式，将该函数的返回值作为测试函数的传入参数。<br>如下面的例子，我们首先定义了hello函数，并将其标记为fixture，在test_string函数中，我们将它作为入参使用。<br><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="decorator">@pytest.fixture()</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">hello</span><span class="params">()</span>:</span></span><br><span class="line">    <span class="keyword">return</span> <span class="string">"hello"</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">test_string</span><span class="params">(hello)</span>:</span></span><br><span class="line">    <span class="keyword">assert</span> hello == <span class="string">"hello"</span>, <span class="string">"fixture should return hello"</span></span><br></pre></td></tr></table></figure></p>
+<p>fixture提供给开发者多种可能性，可以把它当做对象创建者，充当测试开始前的准备函数（类似setup_function)，还能为测试函数提供多种不同参数fixture对象。</p>
+<h2 id="1-_准备函数:_usefixtures">1. 准备函数: usefixtures</h2><p>在测试的时候，我们有时需要需要setup_function和teardown_function等系列函数来完成测试函数的初始化以及清理工作。<br>fixture提供了更加灵活的方式，来完成这个工作。<br>usefixtures标记应用在函数前，表示在开始测试前应用该函数但不需要其返回值。<br>下面例子创建一个临时目录，并将其设为当前目录。<br><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="decorator">@pytest.fixture()</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">cleandir</span><span class="params">()</span>:</span></span><br><span class="line">    newpath = tempfile.mkdtemp()</span><br><span class="line">    os.chdir(newpath)</span><br><span class="line"></span><br><span class="line"><span class="decorator">@pytest.mark.usefixtures("cleandir")</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">TestDirectoryInit</span>:</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">test_cwd_starts_empty</span><span class="params">(self)</span>:</span></span><br><span class="line">        <span class="keyword">assert</span> os.listdir(os.getcwd()) == []</span><br><span class="line">        <span class="keyword">with</span> open(<span class="string">"myfile"</span>, <span class="string">"w"</span>) <span class="keyword">as</span> f:</span><br><span class="line">            f.write(<span class="string">"hello"</span>)</span><br></pre></td></tr></table></figure></p>
+<p>我们也可以使用逗号分割，使用多个fixture。<br>pytest.mark.usefixtures(“cleandir”, “anotherfixture”)</p>
+<h3 id="2-_销毁函数:_addfinalizer">2. 销毁函数: addfinalizer</h3><p>只初始化可能还不够，我们还需要释放函数，fixture通过addfinallizer注册释放函数。<br>下面例子将在测试函数完成后，释放smtp对象。<br><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="decorator">@pytest.fixture()</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">smtp</span><span class="params">(request)</span>:</span></span><br><span class="line">    smtp = smtplib.SMTP(<span class="string">"smtp.gmail.com"</span>)</span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">fin</span><span class="params">()</span>:</span></span><br><span class="line">        <span class="keyword">print</span> (<span class="string">"teardown smtp"</span>)</span><br><span class="line">        smtp.close()</span><br><span class="line">    request.addfinalizer(fin)</span><br><span class="line">    <span class="keyword">return</span> smtp  <span class="comment"># provide the fixture value</span></span><br></pre></td></tr></table></figure></p>
+<h3 id="获取调用函数信息:_request">获取调用函数信息: request</h3><p>使用fixture标记函数后，函数将默认接入一个request参数，它将包含使用该fixture函数的信息，详情可参考这里。<br>这使得我们可以更加灵活的根据不同的函数来决定创建不同的对象以及释放函数。<br>例如下面例子，我们检查测试函数对应的module里的变量值，以此来决定创建和释放函数。<br><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># content of conftest.py</span></span><br><span class="line"><span class="decorator">@pytest.fixture()</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">smtp</span><span class="params">(request)</span>:</span></span><br><span class="line">    server = getattr(request.module, <span class="string">"smtpserver"</span>, <span class="string">"smtp.gmail.com"</span>)</span><br><span class="line">    need_finalize = getattr(request.module, <span class="string">"need_finalize"</span>, <span class="keyword">True</span>)</span><br><span class="line">    smtp = smtplib.SMTP(server)</span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">fin</span><span class="params">()</span>:</span></span><br><span class="line">        <span class="keyword">if</span> need_finalize:</span><br><span class="line">            <span class="keyword">print</span> (<span class="string">"finalizing %s (%s)"</span> % (smtp, server))</span><br><span class="line">            smtp.close()</span><br><span class="line">    request.addfinalizer(fin)</span><br><span class="line">    <span class="keyword">return</span> smtp</span><br><span class="line"></span><br><span class="line"><span class="comment"># content of test_anothersmtp.py</span></span><br><span class="line">smtpserver = <span class="string">"mail.python.org"</span>  <span class="comment"># will be read by smtp fixture</span></span><br><span class="line">need_finalize = <span class="keyword">False</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">test_showhelo</span><span class="params">(smtp)</span>:</span></span><br><span class="line">    <span class="keyword">assert</span> <span class="number">0</span>, smtp.helo()</span><br></pre></td></tr></table></figure></p>
+<h2 id="3-_参数">3. 参数</h2><p>有时我们需要全面测试多种不同条件下的一个对象，功能是否符合预期。我们可以通过params参数来指定传入的参数。<br>下面例子test_mail将执行2次，分别对应smtp fixture的两种不同参数<br><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">SMTP</span>:</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span><span class="params">(self, smtp, sender, receiver)</span>:</span></span><br><span class="line">        self.smtp = smtp</span><br><span class="line">        self.sender = sender</span><br><span class="line">        self.receiver = receiver</span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__del__</span><span class="params">(self)</span>:</span></span><br><span class="line">        self.smtp.close()</span><br><span class="line"></span><br><span class="line"><span class="decorator">@pytest.fixture(params=[["smtp.gmail.com", "from@domain.com", "to@doamin.com"], ["mail.python.org", "from@python.org", "to@python.org"])</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">smtp</span><span class="params">(request)</span>:</span></span><br><span class="line">    <span class="keyword">return</span> SMTP(<span class="comment">#param)</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">test_mail</span><span class="params">(smtp)</span>:</span></span><br><span class="line">    message = <span class="string">"hello"</span></span><br><span class="line">    <span class="keyword">assert</span> smtp.sendmail(message)</span><br></pre></td></tr></table></figure></p>
+<p>pytest在使用不同参数运行test时将生成不同的测试id。我们可以通过ids指定其id。<br><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="decorator">@pytest.fixture(params=[1, 2, 4, 8], ids=["a", "b"])</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">param_a</span><span class="params">(request)</span>:</span></span><br><span class="line">    <span class="keyword">return</span> request.param</span><br></pre></td></tr></table></figure></p>
+<h2 id="fixture的作用域">fixture的作用域</h2><p>fixture提供三种作用域，用于指定fixture初始化的规则。</p>
+<h3 id="function">function</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="decorator">@pytest.fixture(scope="function")</span></span><br></pre></td></tr></table></figure>
+<p>默认是scode=”function”，表示fixture会为每个function初始化一次。</p>
+<h3 id="module">module</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="decorator">@pytest.fixture(scope="module")</span></span><br></pre></td></tr></table></figure>
+<p>scope=”module”表示一个模块fixture只初始化一次，如果一个模块使用多次该fixture，将会使用同个对象。</p>
+<h3 id="session">session</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="decorator">@pytest.fixture(scope="session")</span></span><br></pre></td></tr></table></figure>
+<p>scope=”session”,表示全局初始化一次。通常用于全局系统初始化.<br>可以使用py.test –fixture test_module.py 查看绑定的fixture</p>
+<h2 id="fixture的自动执行：autouse">fixture的自动执行：autouse</h2><p>我们有时候需要某些fixture在全局自动执行，如某些全局变量的初始化工作，亦或一些全局化的清理或者初始化函数。这时我们可以使用autouse。<br>下面例子，在开始测试前我们清理了此前可能残留的文件，接着将程序目录设置为该目录。设置为autouse=True使得函数将默认执行。<br><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">work_dir = <span class="string">"/tmp/app"</span></span><br><span class="line"><span class="decorator">@pytest.fixture(session="session", autouse=True)</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">clean_workdir</span><span class="params">()</span>:</span></span><br><span class="line">    shutil.rmtree(work_dir)</span><br><span class="line">    os.mkdir(work_dir)</span><br><span class="line">    os.chrdir(work_dir)</span><br></pre></td></tr></table></figure></p>
+<h2 id="总结">总结</h2><p>fixture的存在使得我们在编写测试函数的准备函数、销毁函数或者多个条件的测试提供了更加灵活的选择。</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://yoursite.com/2015/09/27/pytest-fixture/" data-id="cih0i58k0000rhqw41ldq3zve" class="article-share-link">分享到</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/tools/">tools</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+    
+      <article id="post-ssh" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-inner">
+    
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2015/09/16/ssh/">ssh config</a>
+    </h1>
+  
+
+        <div class="article-meta">
+          
+  <div class="article-date">
+    <i class="fa fa-calendar"></i>
+    <a href="/2015/09/16/ssh/">
+      <time datetime="2015-09-16T11:20:16.000Z" itemprop="datePublished">2015-09-16</time>
+    </a>
+  </div>
+
+
+          
+        </div>
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+                
+        <p>对于一个开发者，每天都需要执行的一条命令就是ssh，如果能高效使用该命令，不仅能提升工程效率，更重要的是能有一个好的心情，不用每条干着重复无聊的输入密码，host等机械劳动。本篇文章介绍如何通过配置ssh提升我们的效率。</p>
+<h1 id="ssh_config">ssh config</h1><p>ssh配置文件默认放在/etc/ssh/sshd_config和用户目录~/.ssh/config中，它的配置主要包括两个方面，主机配置和选项配置。主机配置顾名思义用于配置我们要登录的主机选项，选项则配置关于ssh连接信息。下文将详细介绍。</p>
+<h1 id="主机配置">主机配置</h1><p>有时我们需要连接多台服务器查看信息或者执行命令，可能由于配置的不同，每次访问服务器都可能像下面这样：<br><figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ssh username@host -p port</span><br></pre></td></tr></table></figure></p>
+<p>输入繁琐，且我们需要记忆用户名以及host。 一个记忆host的办法是把它放到/etc/hosts中，但我们仍然需要输入用户名，密码，或者有时候port。<br>ssh提供了更简便的办法，在config中，可以加入如下配置项：</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Host    &#21035;&#21517;&#10;    HostName        &#20027;&#26426;&#21517;&#10;    Port            &#31471;&#21475;&#65292;&#40664;&#35748;22&#10;    User            &#29992;&#25143;&#21517;&#10;    IdentityFile    &#23494;&#38053;&#25991;&#20214;&#30340;&#36335;&#24452;</span><br></pre></td></tr></table></figure>
+<p>IdentifyFile文件通过ssh-keygen生成，这里我们指定它的名称为test，这样会在.ssh目录下生成test.pub文件。<br>生成后我们将该文件内容复制到对端服务器.ssh/authorized_keys文件即可。<br>现在假设我们要访问的服务器主机名为test-host.com， 用户名为zheli。<br>这时我们的配置是这样：</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Host    test&#10;    HostName        test-host.com&#10;    User            zheli&#10;    IdentifyFile    ~/.ssh/test.pub</span><br></pre></td></tr></table></figure>
+<p>配置好后，我们仅需下面方式访问即可，是不是很简单？<br><figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ssh test</span><br></pre></td></tr></table></figure></p>
+<h1 id="选项配置">选项配置</h1><h2 id="多条连接共享">多条连接共享</h2><p>如果你需要在多个窗口中打开到同一个服务器的连接，而不想每次都输入用户名，密码，或是等待连接建立，那么你可以配置SSH的连接共享选项。</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ControlMaster auto&#10;ControlPath ~/.ssh/master-%r@%h:%p</span><br></pre></td></tr></table></figure>
+<p>通过以上配置后，当你与服务器建立一条连接后，将在.ssh生产ControlPath的文件，其实 %r 是用户名, %h 是远程主机IP, %p 是端口.<br>之后的连接都将共用这个连接文件，而不会再提示密码。你可以试试与服务器建立一条新连接后，再打开一个新窗创建同样的一条连接，你会发现，第二条连接几乎是在瞬间就建立好了。</p>
+<h2 id="长连接">长连接</h2><p>如果你发现自己每条需要连接同一个服务器无数次，那么长连接选项就是为你准备的：</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ControlPersist 4h</span><br></pre></td></tr></table></figure>
+<p>现在你每次通过SSH与服务器建立连接之后，这条连接将被保持4个小时，即使在你退出服务器之后，这条连接依然可以重用，因此，在你下一次（4小时之内）登录服务器时，你会发现连接以闪电般的速度建立完成，这个选项对于通过scp拷贝多个文件提速尤其明显，因为你不在需要为每个文件做单独的认证了。</p>
+<p>##减少延迟<br>如果每次连接服务器都意味着你需要等待几十秒而无所事事，那么你或许应该试试在你的SSH配置中加入下面这条：<br><figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">GSSAPIAuthentication no</span><br></pre></td></tr></table></figure></p>
+<p>服务器端启用了GSSAPI。登陆的时候客户端需要对服务器端的IP地址进行反解析，如果服务器的IP地址没有配置PTR记录，那么就容易在这里卡住了，通过设置禁用该功能。</p>
+<p>##加速连接<br>如果你确保你和某个服务器之间的连接是安全的（比如通过公司内网连接），那么你就可以通过选择arcfourencryption算法来让数据传输更快一些：<br><figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Ciphers arcfour</span><br></pre></td></tr></table></figure></p>
+<p>注意这个加速是以牺牲数据的“加密”性为代价的，所以如果你连接的是位于网上的服务器，千万不要打开这个选项，并且确保你是通过VPN建立的连接。</p>
+<h2 id="心跳">心跳</h2><p>有时服务端设置了超时选项，当长时间未与服务器交互时，会主动断开连接。为了避免这个问题，可以通过ServerAliveInterval选项，使得client端定时向Server端发送心跳<br><figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ServerAliveInterval 60</span><br></pre></td></tr></table></figure></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://yoursite.com/2015/09/16/ssh/" data-id="cih0i58jp000ihqw47ycuj3a4" class="article-share-link">分享到</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/tools/">tools</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+    
+      <article id="post-traffic-control" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-inner">
+    
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2015/08/29/traffic-control/">云服务的流控设计</a>
+    </h1>
+  
+
+        <div class="article-meta">
+          
+  <div class="article-date">
+    <i class="fa fa-calendar"></i>
+    <a href="/2015/08/29/traffic-control/">
+      <time datetime="2015-08-29T08:02:34.000Z" itemprop="datePublished">2015-08-29</time>
+    </a>
+  </div>
+
+
+          
+        </div>
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h1 id="流控设计背景">流控设计背景</h1><p>阿里云redis服务的一款云产品，它是一个全内存的NoSql数据库，除了内存、CPU资源管理外，流量控制也是保证服务稳定性的重要一环。Redis服务的数据流节点包括proxy节点和存储节点，所有实例的数据访问都要先经过proxy，然后转发到后端对应的redis进程。后端每个存储节点上最多可以部署几百个redis进程，而这些进程一般都属于完全不同用户实例。 我们的服务是以实例为单位来管理用户数据的，内存容量是最核心的资源，实例按存储容量从低到高划分为10种规格，每种存储规格都包括qps、 进/出流量、连接数资源在内的最大使用限制，例如：<br><img src="/image/traffic_control_quota.jpeg" alt="规格"></p>
+<h1 id="流量控制架构">流量控制架构</h1><p>我们知道redis本身是没有流量控制的，为此我们服务专门增加了一个proxy层来对数据流做控制，客户端的所有请求都要先经过proxy鉴权，鉴权通过才转发给后端对应的redis进程，最后再由proxy将结果回复给客户端，如下图。<br><img src="/image/traffic_control_architecture.jpeg" alt="架构"><br>
+        
+          <p class="article-more-link">
+            <a href="/2015/08/29/traffic-control/#more">Read More</a>
+          </p>
+        
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://yoursite.com/2015/08/29/traffic-control/" data-id="cih0i58jf000ahqw4pqcl35n7" class="article-share-link">分享到</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/system/">system</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+    
+      <article id="post-proxy-bug" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-inner">
+    
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2015/08/12/proxy-bug/">一次Proxy宕机引起的服务不可用</a>
+    </h1>
+  
+
+        <div class="article-meta">
+          
+  <div class="article-date">
+    <i class="fa fa-calendar"></i>
+    <a href="/2015/08/12/proxy-bug/">
+      <time datetime="2015-08-12T05:02:29.000Z" itemprop="datePublished">2015-08-12</time>
+    </a>
+  </div>
+
+
+          
+        </div>
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>这段时间在工作中遇到一起因为客户发送非法协议触发的Proxy解协议的BUG，影响了大多数用户13分钟服务不可用。此类Bug大家在写C++程序时可能也经常会遇到，特别对于云服务场景，客户端种类多样，导致此类BUG很难预防，同时造成的危害巨大。实际上此版本的Proxy已经上线超过两周，此前测试和回归Case也已经跑了1个月。<br>结合此前3月也出现过一起因为某特殊逻辑引起连接未关闭，导致文件描述符猛涨到20w后，超过操作系统限制，导致Accept死循环的BUG，本文从代码、部署和Bug处理层面探讨如何能最大限度的避免该问题。</p>
+<h2 id="1-_代码安全">1. 代码安全</h2><h3 id="代码覆盖率">代码覆盖率</h3><p>最直观和直接的办法是保证单元测试和功能测试覆盖所有代码。但通常这只是解决该办法的第一步，很多时候我们即便覆盖到了所有代码，仍然存在bug。特别对于没有虚拟机保护的C和C++程序。<br>这时需要将系统与外界出现交互部分的逻辑梳理出来，大家一起做CodeReview。列举出各个依赖所有可能出现异常，并一一核对代码的处理情况。<br>特别对于复杂的用户输入，如协议处理，采用从后往前，尽全力构造躲过系统判断的输入。</p>
+<h3 id="代码Review负责人">代码Review负责人</h3><p>现在各个团队代码开发任务都很大，虽然大家提提Review，但是很多时候，大家只是一扫而过，而并没有仔细为他人去考虑各个可能出问题的逻辑。 为每个项目至少设置一个代码Review负责人，并要求其对代码承担一定责任。</p>
+<h3 id="其它">其它</h3><p>除开常用的内存检查工具valgrind，当前存在很多种代码扫描工具，如Clang，上线前对代码进行一次检查，是很有必要的。很多时候一个灾难性bug可能仅仅源于没有初始化某个变量。<br>
+        
+          <p class="article-more-link">
+            <a href="/2015/08/12/proxy-bug/#more">Read More</a>
+          </p>
+        
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://yoursite.com/2015/08/12/proxy-bug/" data-id="cih0i58k2000thqw4pyvj6096" class="article-share-link">分享到</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/system/">system</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+    
+      <article id="post-atlas-baidu-cloud-storage" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-inner">
+    
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2015/06/06/atlas-baidu-cloud-storage/">Atlas: 百度云的K/V存储系统</a>
+    </h1>
+  
+
+        <div class="article-meta">
+          
+  <div class="article-date">
+    <i class="fa fa-calendar"></i>
+    <a href="/2015/06/06/atlas-baidu-cloud-storage/">
+      <time datetime="2015-06-06T05:02:29.000Z" itemprop="datePublished">2015-06-06</time>
+    </a>
+  </div>
+
+
+          
+        </div>
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>#系统的挑战</p>
+<ol>
+<li>硬件利用率<br>大部分cpu利用率低，采用arm 2g内存，4核1.9的CPU，6T磁盘</li>
+<li>节省资源<br>由于热点数据已经由CDN，为了使得2g内存要管理6T硬盘，将文件的索引和文件存储分离。</li>
+<li>使用LSM-Tree<br>Compaction影响LSM-Tree的性能，特别是当value普遍比较大时，将很大影响系统性能。</li>
+</ol>
+<p>#设计要点</p>
+<ol>
+<li>针对小文件<br>94%文件小于128k</li>
+<li>高可用性</li>
+<li>高写入性能</li>
+<li>强一致性</li>
+<li>低成本</li>
+</ol>
+<p>#架构<br><img src="/image/atlas_architecture.png" alt="Architecture"><br>系统分为两层，上层PIS(Patch and Index)，负责文件到文件块的映射和临时数据的写入。<br>下层RBS(Raid-like Block System)用来实际存储数据。<br>用户在使用时，首先访问PIS的元数据服务器，获取PIS的路由表。接着通过文件名进行hash，在路由表中找到对应的PIS服务器，向其发出请求。</p>
+<p>#PIS系统<br>PIS是系统的入口，它提供基于文件的三个接口Put, Get, Delete。同时负责存储文件到文件块的索引，和临时数据块。<br>在设计上，它采用中心化设计，分为Master节点和数据节点。由Master负责管理全局PIS的存活情况和系统路由，数据节点负责存储索引文件。<br><img src="/image/atlas_pis.png" alt="PIS"><br>上图为PIS模块图，为了保证数据的强一致性，用户请求到达PIS时，它将首先生成该文件对应的ID，接着经由复制模块，将此文件复制到两个从节点。<br>当复制完成后，PIS将数据写入临时的Block中。每个Block最大为64MB。<br>接着在Index中，记录此文件ID在临时Block的位置的偏移和文件长度<br>一旦Block超过64MB，将会对该文件进行打包不再修改，并经由RBSClient传给RBS。</p>
+<p>Index采用定长形式存储，引擎采用LevelDB。<br>它的每个Key是128位全局独立ID。Value是由三元组成(BlockId, Offset, Length)。分别对应文件块ID，块上的偏移和文件的大小。<br>由于每条记录都很小，LevelDB在执行Compaction操作的代价也较小。</p>
+<p>#RBS系统<br>RBS负责文件块的存储，它提供文件块的写入，删除和指定文件块偏移和长度的读取。<br>它同样采用中心化设计，中央节点维护RBS节点存活情况和文件块到RBS的映射，以及数据迁移和灾难恢复。</p>
+<p>为了保证系统的高可用性和存储，采用Erasure Code编码，Erasure Code之前广泛使用在RAID系统中，算法要求每次需要提供4个大小相同的块，并为其两个新的块。从而保证对于6个文件块，任意丢失两个及以下的块系统的数据仍然能恢复。<br>在将64MB文件快写入RBS中时，会事先划分成8个8MB的文件，编码后形成新的4个8MB文件，存在12个RBS数据节点中。<br>为了方便寻找这12个文件，此前生成的BlockedId最后4位会是0，再此处将分别填上从1-12的ID。<br>RBS客户端发出写入请求时，会首先通过中心节点，询问可以写入文件块的服务器地址，接着直接对数据节点发出写入请求，写入成功后通知RBS中心服务器。<br>为了防止部分节点出现故障影响文件块的写入，在写入12个文件之前，RBS客户端会首先向RBS中央节点请求15个IP，当有节点失败时，尝试下一个。<br>
+        
+          <p class="article-more-link">
+            <a href="/2015/06/06/atlas-baidu-cloud-storage/#more">Read More</a>
+          </p>
+        
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://yoursite.com/2015/06/06/atlas-baidu-cloud-storage/" data-id="cih0i58l5001qhqw4u4nm0xqr" class="article-share-link">分享到</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/system/">system</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+    
+      <article id="post-replication" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-inner">
+    
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2015/05/30/replication/">数据的同步</a>
+    </h1>
+  
+
+        <div class="article-meta">
+          
+  <div class="article-date">
+    <i class="fa fa-calendar"></i>
+    <a href="/2015/05/30/replication/">
+      <time datetime="2015-05-30T03:14:16.000Z" itemprop="datePublished">2015-05-30</time>
+    </a>
+  </div>
+
+
+          
+        </div>
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>在海量数据，高并发时代的今天，单机由于其CPU，磁盘IO，网络带宽以及存储空间等原因，已经不再能及时响应用户的所有请求，系统都开始走向分布式，由多台机器组件成一个集群响应用户请求。具体到分布式存储系统，一个很重要的问题就在于数据的同步。本文将简要介绍当前较为流行的数据同步方案，简要分析其原理和利弊，希望能起到一个抛砖引玉的作用。</p>
+<p>##数据同步初步<br>数据同步的基本思想很简单，就是将单台机器上的用户数据和请求，通过<em>复制Replicate</em>的方式复制用户的操作命令到多台机器执行。从而应对当某台机器出现<a href="https://aphyr.com/posts/288-the-network-is-reliable">故障</a>时，数据仍能存其他机器获取。<br>一种最朴素的实现方式是采用多台机器构成集群存储数据，机器按照职责分为一个主节点和多个从节点。其中主节点负责接收用户的数据请求，在本地执行用户请求的同时，将数据复制到集群中其他从节点。<br><img src="/image/replicate_base.png" alt="同步复制"><br>上图中描述了同步复制的基本流程。<br>
+        
+          <p class="article-more-link">
+            <a href="/2015/05/30/replication/#more">Read More</a>
+          </p>
+        
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://yoursite.com/2015/05/30/replication/" data-id="cih0i58ju000nhqw4a72mn02a" class="article-share-link">分享到</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/system/">system</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+    
+      <article id="post-raft" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-inner">
+    
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2015/05/22/raft/">raft</a>
+    </h1>
+  
+
+        <div class="article-meta">
+          
+  <div class="article-date">
+    <i class="fa fa-calendar"></i>
+    <a href="/2015/05/22/raft/">
+      <time datetime="2015-05-22T05:11:07.000Z" itemprop="datePublished">2015-05-22</time>
+    </a>
+  </div>
+
+
+          
+        </div>
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>##简介<br>在分布式系统中，一个经典的问题是如何高效、可靠的保证运行集群中各个节点数据保持一致。Paxos算法是解决该问题中最广为人知的算法，它由Lamport提出，但由于其描述的较为晦涩，同时存在多处省略，在实现过程中往往有很多细节难于处理，在工程中存在许多类似而又不统一的实现。ZooKeeper使用的Zab算法实际上和Paxos存在很多地方的不同。Raft算法是由Stanford教授提出为了帮助学生理解的同步算法，它和Paxos算法类似，同样能保证集群数据的强一致性，但同时又便于理解。集群中的交互和状态少许多。</p>
+<p>##目标<br>在讲述Raft算法之前，我们首先讨论算法需要达成的目标。它包括以下四个方面：</p>
+<ol>
+<li>集群需要能够承受各种类型的错误。</li>
+<li>一半以上的节点能运行集群能够正常运作</li>
+<li>每个操作只要一半以上的节点成功执行就算成功</li>
+<li>不能依赖于任何外部时序</li>
+</ol>
+<p>##基本概念</p>
+<p>###架构<br><img src="/image/raft_architecture.png" alt="架构"><br>集群以状态复制机(Replicated State Machine)的方式，对外提供服务。<br>任何时候集群中只有一个主节点，负责接收所有用户请求，并将用户的数据复制给其他节点。</p>
+<p>###节点状态<br>节点有三种状态，分别为: Leader, Follower, Candidate</p>
+<p>####Leader<br>在任何时刻，集群只有一个Leader<br>Leader负责接收所有用户请求，如何Follower接收到将把请求转发到Leader</p>
+<p>####Follower<br>Follower被动的方式运行，只负责响应请求，而不主动发出请求。<br>节点在启动之初状态都为Follower</p>
+<p>####Candidate<br>当Follower长期未收到Leader的请求时，将变成Candidate状态，开始新一轮的集群选举。<br>节点的转换图:<br><img src="/image/raft_state_change.png" alt="同步复制"><br>
+        
+          <p class="article-more-link">
+            <a href="/2015/05/22/raft/#more">Read More</a>
+          </p>
+        
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://yoursite.com/2015/05/22/raft/" data-id="cih0i58jx000phqw4akjvjfuu" class="article-share-link">分享到</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/system/">system</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+    
+      <article id="post-nsq" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-inner">
+    
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2015/05/18/nsq/">nsq</a>
+    </h1>
+  
+
+        <div class="article-meta">
+          
+  <div class="article-date">
+    <i class="fa fa-calendar"></i>
+    <a href="/2015/05/18/nsq/">
+      <time datetime="2015-05-18T15:10:11.000Z" itemprop="datePublished">2015-05-18</time>
+    </a>
+  </div>
+
+
+          
+        </div>
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>#简介<br><a href="nsq.io">nsq</a>是一个由go编写的简单，高效消息队列，它的最大特点是无第三方依赖和配置简单易于使用。</p>
+<p>#基本概念<br>和传统消息队列一样，它分为两种角色，生产者和消费者。生产者发布消息到指定的话题Topic中。消费者通过管道Channel来订阅话题中数据。每个话题通常被多个管道绑定。多个消费者绑定同样的管道在正常情况下只会接收一份数据。                              </p>
+<pre><code>                                                    / metrics-consumer1
+                                channel<span class="string">[metrics]</span>   -  metrics-consumer2
+                            /    
+producer -&gt; topic<span class="string">[clicks]</span>   -   channel<span class="string">[spam_analyzer]</span> - spam-consumer
+                            \   channel<span class="string">[archive]</span>   -  archive-consumer
+                                                    \ archive-consumer2
+</code></pre><p>系统由三个子系统构成：控制服务器， 数据服务器和管理服务器。<br>
+        
+          <p class="article-more-link">
+            <a href="/2015/05/18/nsq/#more">Read More</a>
+          </p>
+        
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://yoursite.com/2015/05/18/nsq/" data-id="cih0i58k7000yhqw4vlxca194" class="article-share-link">分享到</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/system/">system</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+    
+      <nav id="page-nav">
+        <span class="page-number current">1</span><a class="page-number" href="/page/2/">2</a><a class="page-number" href="/page/3/">3</a><a class="page-number" href="/page/4/">4</a><a class="extend next" rel="next" href="/page/2/">下一页 &raquo;</a>
+      </nav>
+    </section>
+      
+        <aside id="sidebar">
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">最新文章</h3>
+    <div class="widget">
+      <ul id="recent-post" class="no-thumbnail">
+        
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category"></p>
+              <p class="item-title"><a href="/2015/11/15/11tech/" class="title">缓存服务如何应对双11</a></p>
+              <p class="item-date"><time datetime="2015-11-15T11:03:44.000Z" itemprop="datePublished">2015-11-15</time></p>
+            </div>
+          </li>
+        
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category"></p>
+              <p class="item-title"><a href="/2015/09/30/git-undo/" class="title">git撤销</a></p>
+              <p class="item-date"><time datetime="2015-09-30T13:05:59.000Z" itemprop="datePublished">2015-09-30</time></p>
+            </div>
+          </li>
+        
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category"></p>
+              <p class="item-title"><a href="/2015/09/27/pytest-fixture/" class="title">pytest fixture</a></p>
+              <p class="item-date"><time datetime="2015-09-27T01:02:29.000Z" itemprop="datePublished">2015-09-27</time></p>
+            </div>
+          </li>
+        
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category"></p>
+              <p class="item-title"><a href="/2015/09/16/ssh/" class="title">ssh config</a></p>
+              <p class="item-date"><time datetime="2015-09-16T11:20:16.000Z" itemprop="datePublished">2015-09-16</time></p>
+            </div>
+          </li>
+        
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category"></p>
+              <p class="item-title"><a href="/2015/08/29/traffic-control/" class="title">云服务的流控设计</a></p>
+              <p class="item-date"><time datetime="2015-08-29T08:02:34.000Z" itemprop="datePublished">2015-08-29</time></p>
+            </div>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+    
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">标签</h3>
+    <div class="widget">
+      <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/algorithm/">algorithm</a><span class="tag-list-count">14</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/life/">life</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/system/">system</a><span class="tag-list-count">12</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tools/">tools</a><span class="tag-list-count">3</span></li></ul>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">归档</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/11/">November 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/09/">September 2015</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/08/">August 2015</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/06/">June 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/05/">May 2015</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/04/">April 2015</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/03/">March 2015</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/02/">February 2015</a><span class="archive-list-count">12</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/01/">January 2015</a><span class="archive-list-count">5</span></li></ul>
+    </div>
+  </div>
+
+  
+  <div id="toTop" class="fa fa-chevron-up"></div>
+</aside>
+      
+    </div>
+    <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      &copy; 2015 Zhe Li<br>
+      Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>. Theme by <a href="http://github.com/ppoffice">PPOffice</a>
+    </div>
+  </div>
+</footer>
+    
+
+
+
+ <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+
+
+
+
+  <link rel="stylesheet" href="/fancybox/jquery.fancybox.css" type="text/css">
+  <script src="/fancybox/jquery.fancybox.pack.js" type="text/javascript"></script>
+
+
+<script src="/js/script.js" type="text/javascript"></script>
+
+  </div>
+</body>
+</html>

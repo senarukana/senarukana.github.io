@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>BitMagic | Zhe Li&#39;s Blog</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="#逆转比特位
+
+给定数字n，求颠倒每一位bit后产生的结果。
+
+循环移位1unsigned int count = sizeof(int)*8&amp;#10;unsigned int reverse_num = 0&amp;#10;while num != 0:&amp;#10;    reverse_num |= (n &amp;#38; 1)&amp;#60;&amp;#60;count;&amp;#10;    n &amp;#62;&amp;#62;= 1;">
+<meta property="og:type" content="article">
+<meta property="og:title" content="BitMagic">
+<meta property="og:url" content="http://yoursite.com/2015/01/27/bit-magic/index.html">
+<meta property="og:site_name" content="Zhe Li's Blog">
+<meta property="og:description" content="#逆转比特位
+
+给定数字n，求颠倒每一位bit后产生的结果。
+
+循环移位1unsigned int count = sizeof(int)*8&amp;#10;unsigned int reverse_num = 0&amp;#10;while num != 0:&amp;#10;    reverse_num |= (n &amp;#38; 1)&amp;#60;&amp;#60;count;&amp;#10;    n &amp;#62;&amp;#62;= 1;">
+<meta property="og:updated_time" content="2015-09-29T12:24:44.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="BitMagic">
+<meta name="twitter:description" content="#逆转比特位
+
+给定数字n，求颠倒每一位bit后产生的结果。
+
+循环移位1unsigned int count = sizeof(int)*8&amp;#10;unsigned int reverse_num = 0&amp;#10;while num != 0:&amp;#10;    reverse_num |= (n &amp;#38; 1)&amp;#60;&amp;#60;count;&amp;#10;    n &amp;#62;&amp;#62;= 1;">
+  
+  
+    <link rel="icon" href="favicon.png">
+  
+  
+ <link href='https://fonts.googleapis.com/css?family=Open+Sans:400italic,400,600' rel='stylesheet' type='text/css'>
+ <link href='https://fonts.googleapis.com/css?family=Source+Code+Pro' rel='stylesheet' type='text/css'>
+
+
+  <link rel="stylesheet" href="/css/style.css" type="text/css">
+  <link rel="stylesheet" href="/font-awesome/css/font-awesome.min.css" type="text/css">
+  
+
+  
+
+  
+</head>
+<body>
+  <div id="container">
+    <header id="header">
+  <div id="header-main" class="header-inner">
+    <div class="outer">
+      <a href="/" id="logo"><i class="logo" style="background-image: url(/css/images/logo.png)"></i><span class="site-title">Zhe Li&#39;s Blog</span></a>
+      <nav id="main-nav">
+        
+          <a class="main-nav-link" href="/.">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+          <a class="main-nav-link" href="/categories">Categories</a>
+        
+          <a class="main-nav-link" href="/tags">Tags</a>
+        
+      </nav>
+      
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" results="0" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit"> </button><input type="hidden" name="sitesearch" value="http://yoursite.com"></form>
+      </div>
+    </div>
+  </div>
+  <div id="main-nav-mobile" class="header-sub header-inner">
+    <table class="menu outer">
+      <tr>
+        
+          <td><a class="main-nav-link" href="/.">Home</a></td>
+        
+          <td><a class="main-nav-link" href="/archives">Archives</a></td>
+        
+          <td><a class="main-nav-link" href="/categories">Categories</a></td>
+        
+          <td><a class="main-nav-link" href="/tags">Tags</a></td>
+        
+        <td>
+          <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" results="0" class="search-form-input" placeholder="Search"><input type="hidden" name="sitesearch" value="http://yoursite.com"></form>
+        </td>
+      </tr>
+    </table>
+  </div>
+</header>
+
+    <div class="outer">
+      
+      <section id="main"><article id="post-bit-magic" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-inner">
+    
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      BitMagic
+    </h1>
+  
+
+        <div class="article-meta">
+          
+  <div class="article-date">
+    <i class="fa fa-calendar"></i>
+    <a href="/2015/01/27/bit-magic/">
+      <time datetime="2015-01-27T05:02:03.000Z" itemprop="datePublished">2015-01-27</time>
+    </a>
+  </div>
+
+
+          
+        </div>
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+                
+        <p>#逆转比特位</p>
+<blockquote>
+<p>给定数字n，求颠倒每一位bit后产生的结果。</p>
+<ol>
+<li>循环移位<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">unsigned int count = sizeof(int)*8&#10;unsigned int reverse_num = 0&#10;while num != 0:&#10;    reverse_num |= (n &#38; 1)&#60;&#60;count;&#10;    n &#62;&#62;= 1;&#10;    --count;&#10;return reverse_num</span><br></pre></td></tr></table></figure>
+</li>
+</ol>
+</blockquote>
+<ol>
+<li>二分<br>两两之间、再求四四之间、递进求到16进行互相的交换<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">n = (((n &#38; 0x55555555)&#60;&#60;1) | ((n&#62;&#62;1) &#38; 0x55555555));&#10;n = (((n &#38; 0x33333333)&#60;&#60;2) | ((n&#62;&#62;2) &#38; 0x33333333));&#10;n = (((n &#38; 0x0f0f0f0f)&#60;&#60;4) | ((n&#62;&#62;4) &#38; 0x0f0f0f0f));&#10;n = (((n &#38; 0x00ff00ff)&#60;&#60;8) | ((n&#62;&#62;8) &#38; 0x00ff00ff));&#10;n = (((n &#38; 0x0000ffff)&#60;&#60;16) | ((n&#62;&#62;16) &#38; 0x0000ffff));&#10;return n;</span><br></pre></td></tr></table></figure>
+</li>
+</ol>
+<p>对于数字的移位操作，需要保证数字是无符号整数，否则可能是算数移位 或者 逻辑移位，依赖于具体的实现。</p>
+<p>#整数二进制中1的数量</p>
+<ol>
+<li><p>n &amp; (n-1) 去掉最低1</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">while n:&#10;    c += 1&#10;    n &#38; = n-1</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>n &amp; (-n) 得到最低位1</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">while n:&#10;    c += 1&#10;    n -= n &#38; (-n)</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>二分<br>和Reverse Bit方法类似，先求两两之间、再求四四之间、递进求到16求1的数目</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">n = (n &#38; (0x55555555)) + ((n &#62;&#62; 1) &#38; 0x55555555)&#10;n = (n &#38; (0x33333333)) + ((n &#62;&#62; 2) &#38; 0x33333333)&#10;n = (n &#38; (0x0f0f0f0f)) + ((n &#62;&#62; 4) &#38; 0x0f0f0f0f)&#10;n = (n &#38; (0x00ff00ff)) + ((n &#62;&#62; 8) &#38; 0x00ff00ff)&#10;n = (n &#38; (0x0000ffff)) + ((n &#62;&#62; 16) &#38; 0x0000ffff)&#10;return n</span><br></pre></td></tr></table></figure>
+</li>
+</ol>
+<p>#Next Power of 2<br>通过n &amp; (n-1) 获取最高位，再左移一位即可，注意检查是否为0:<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">next_pow = n &#38; (n-1)&#10;if next_pow == 0:&#10;    return n&#10;return next_pow &#60;&#60; 1</span><br></pre></td></tr></table></figure></p>
+<p>#A * B 不能用乘法，除法<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">res = 0&#10;isNeg = (a &#62; 0 and b &#60; 0) or (a &#60; 0 and b &#62; 0)&#10;for i in range(63):&#10;    if ((b &#62;&#62; i) &#38; 1) &#62; 0:&#10;        tmp = res + (a &#60;&#60; i) #&#32771;&#34385;&#26159;&#21542;&#36234;&#30028;&#10;        if tmp &#60; res:&#10;            return isNeg ? MIN_INT : MAXINT&#10;        res = tmp&#10;return res</span><br></pre></td></tr></table></figure></p>
+<p>#A / B 不能用乘法，除法<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">res = 0&#10;isNeg = (a &#62; 0 and b &#60; 0) or (a &#60; 0 and b &#62; 0)&#10;while a &#62;= b:&#10;    power = 1&#10;    while ((b&#60;&#60;power) &#62;= (b&#60;&#60;(power-1))) and (b&#60;&#60;power) &#60;= a:&#10;        power += 1&#10;    res |= 1&#60;&#60;(power-1)&#10;    a -= (b&#60;&#60;(power-1))&#10;if isNeg:&#10;    res *= -1</span><br></pre></td></tr></table></figure></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://yoursite.com/2015/01/27/bit-magic/" data-id="cih0i58l1001mhqw49nz7f7v1" class="article-share-link">分享到</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/algorithm/">algorithm</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2015/02/06/graph/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">上一篇</strong>
+      <div class="article-nav-title">
+        
+          Graph
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2015/01/26/substring/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">下一篇</strong>
+      <div class="article-nav-title">substring</div>
+    </a>
+  
+</nav>
+
+
+  
+</article>
+
+
+</section>
+      
+        <aside id="sidebar">
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">最新文章</h3>
+    <div class="widget">
+      <ul id="recent-post" class="no-thumbnail">
+        
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category"></p>
+              <p class="item-title"><a href="/2015/11/15/11tech/" class="title">缓存服务如何应对双11</a></p>
+              <p class="item-date"><time datetime="2015-11-15T11:03:44.000Z" itemprop="datePublished">2015-11-15</time></p>
+            </div>
+          </li>
+        
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category"></p>
+              <p class="item-title"><a href="/2015/09/30/git-undo/" class="title">git撤销</a></p>
+              <p class="item-date"><time datetime="2015-09-30T13:05:59.000Z" itemprop="datePublished">2015-09-30</time></p>
+            </div>
+          </li>
+        
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category"></p>
+              <p class="item-title"><a href="/2015/09/27/pytest-fixture/" class="title">pytest fixture</a></p>
+              <p class="item-date"><time datetime="2015-09-27T01:02:29.000Z" itemprop="datePublished">2015-09-27</time></p>
+            </div>
+          </li>
+        
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category"></p>
+              <p class="item-title"><a href="/2015/09/16/ssh/" class="title">ssh config</a></p>
+              <p class="item-date"><time datetime="2015-09-16T11:20:16.000Z" itemprop="datePublished">2015-09-16</time></p>
+            </div>
+          </li>
+        
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category"></p>
+              <p class="item-title"><a href="/2015/08/29/traffic-control/" class="title">云服务的流控设计</a></p>
+              <p class="item-date"><time datetime="2015-08-29T08:02:34.000Z" itemprop="datePublished">2015-08-29</time></p>
+            </div>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+    
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">标签</h3>
+    <div class="widget">
+      <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/algorithm/">algorithm</a><span class="tag-list-count">14</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/life/">life</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/system/">system</a><span class="tag-list-count">12</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tools/">tools</a><span class="tag-list-count">3</span></li></ul>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">归档</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/11/">November 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/09/">September 2015</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/08/">August 2015</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/06/">June 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/05/">May 2015</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/04/">April 2015</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/03/">March 2015</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/02/">February 2015</a><span class="archive-list-count">12</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/01/">January 2015</a><span class="archive-list-count">5</span></li></ul>
+    </div>
+  </div>
+
+  
+  <div id="toTop" class="fa fa-chevron-up"></div>
+</aside>
+      
+    </div>
+    <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      &copy; 2015 Zhe Li<br>
+      Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>. Theme by <a href="http://github.com/ppoffice">PPOffice</a>
+    </div>
+  </div>
+</footer>
+    
+
+
+
+ <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+
+
+
+
+  <link rel="stylesheet" href="/fancybox/jquery.fancybox.css" type="text/css">
+  <script src="/fancybox/jquery.fancybox.pack.js" type="text/javascript"></script>
+
+
+<script src="/js/script.js" type="text/javascript"></script>
+
+  </div>
+</body>
+</html>

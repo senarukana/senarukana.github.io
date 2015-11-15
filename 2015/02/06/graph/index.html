@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>Graph | Zhe Li&#39;s Blog</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="#无向图的判环
+
+思想：如果一个点被访问两次，则说明存在两条不同的路径到达该点。将这两条路径连接起来，则必然存在环。
+
+算法步骤：
+
+采用DFS，从任意一点开始遍历图
+使用visited标记已经走过的路径
+由于对于无向图，当前节点与相邻节点必然存在双向路径，使用parent标记父亲节点
+遍历当前节点的所有相邻节点adj如果当相邻节点adj不是父亲节点，且已经访问过，则说明存在环，直接返回存在环。否">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Graph">
+<meta property="og:url" content="http://yoursite.com/2015/02/06/graph/index.html">
+<meta property="og:site_name" content="Zhe Li's Blog">
+<meta property="og:description" content="#无向图的判环
+
+思想：如果一个点被访问两次，则说明存在两条不同的路径到达该点。将这两条路径连接起来，则必然存在环。
+
+算法步骤：
+
+采用DFS，从任意一点开始遍历图
+使用visited标记已经走过的路径
+由于对于无向图，当前节点与相邻节点必然存在双向路径，使用parent标记父亲节点
+遍历当前节点的所有相邻节点adj如果当相邻节点adj不是父亲节点，且已经访问过，则说明存在环，直接返回存在环。否">
+<meta property="og:updated_time" content="2015-09-29T12:24:44.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Graph">
+<meta name="twitter:description" content="#无向图的判环
+
+思想：如果一个点被访问两次，则说明存在两条不同的路径到达该点。将这两条路径连接起来，则必然存在环。
+
+算法步骤：
+
+采用DFS，从任意一点开始遍历图
+使用visited标记已经走过的路径
+由于对于无向图，当前节点与相邻节点必然存在双向路径，使用parent标记父亲节点
+遍历当前节点的所有相邻节点adj如果当相邻节点adj不是父亲节点，且已经访问过，则说明存在环，直接返回存在环。否">
+  
+  
+    <link rel="icon" href="favicon.png">
+  
+  
+ <link href='https://fonts.googleapis.com/css?family=Open+Sans:400italic,400,600' rel='stylesheet' type='text/css'>
+ <link href='https://fonts.googleapis.com/css?family=Source+Code+Pro' rel='stylesheet' type='text/css'>
+
+
+  <link rel="stylesheet" href="/css/style.css" type="text/css">
+  <link rel="stylesheet" href="/font-awesome/css/font-awesome.min.css" type="text/css">
+  
+
+  
+
+  
+</head>
+<body>
+  <div id="container">
+    <header id="header">
+  <div id="header-main" class="header-inner">
+    <div class="outer">
+      <a href="/" id="logo"><i class="logo" style="background-image: url(/css/images/logo.png)"></i><span class="site-title">Zhe Li&#39;s Blog</span></a>
+      <nav id="main-nav">
+        
+          <a class="main-nav-link" href="/.">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+          <a class="main-nav-link" href="/categories">Categories</a>
+        
+          <a class="main-nav-link" href="/tags">Tags</a>
+        
+      </nav>
+      
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" results="0" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit"> </button><input type="hidden" name="sitesearch" value="http://yoursite.com"></form>
+      </div>
+    </div>
+  </div>
+  <div id="main-nav-mobile" class="header-sub header-inner">
+    <table class="menu outer">
+      <tr>
+        
+          <td><a class="main-nav-link" href="/.">Home</a></td>
+        
+          <td><a class="main-nav-link" href="/archives">Archives</a></td>
+        
+          <td><a class="main-nav-link" href="/categories">Categories</a></td>
+        
+          <td><a class="main-nav-link" href="/tags">Tags</a></td>
+        
+        <td>
+          <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" results="0" class="search-form-input" placeholder="Search"><input type="hidden" name="sitesearch" value="http://yoursite.com"></form>
+        </td>
+      </tr>
+    </table>
+  </div>
+</header>
+
+    <div class="outer">
+      
+      <section id="main"><article id="post-graph" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-inner">
+    
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      Graph
+    </h1>
+  
+
+        <div class="article-meta">
+          
+  <div class="article-date">
+    <i class="fa fa-calendar"></i>
+    <a href="/2015/02/06/graph/">
+      <time datetime="2015-02-06T05:02:29.000Z" itemprop="datePublished">2015-02-06</time>
+    </a>
+  </div>
+
+
+          
+        </div>
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+                
+        <p>#无向图的判环</p>
+<blockquote>
+<p>思想：如果一个点被访问两次，则说明存在两条不同的路径到达该点。将这两条路径连接起来，则必然存在环。</p>
+</blockquote>
+<p>算法步骤：</p>
+<ol>
+<li>采用DFS，从任意一点开始遍历图</li>
+<li>使用visited标记已经走过的路径</li>
+<li>由于对于无向图，当前节点与相邻节点必然存在双向路径，使用parent标记父亲节点</li>
+<li>遍历当前节点的所有相邻节点adj<br>如果当相邻节点adj不是父亲节点，且已经访问过，则说明存在环，直接返回存在环。<br>否则递归遍历相邻节点</li>
+</ol>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">def isUndirectedCycleDFS(graph, node, visited, parent):&#10;    if visited[node]:&#10;        return false&#10;    visited[node] = true&#10;    for adj in graph[node].adjs:&#10;        if adj != parent and visited[adj]: #&#27492;&#28857;&#24050;&#32463;&#34987;&#35775;&#38382;&#65292;&#19988;&#19981;&#26159;&#29238;&#20146;&#33410;&#28857;&#10;            return false&#10;        if !isUndirectedCycleDFS(graph, adj, visited, node): #&#23376;&#33410;&#28857;&#23384;&#22312;&#29615;&#65292;&#30452;&#25509;&#36820;&#22238;&#10;            return false&#10;    return true</span><br></pre></td></tr></table></figure>
+<p>#无向图的连通性</p>
+<blockquote>
+<p>思想：从任意一点开始，可以完整遍历图中所有节点。为了避免图中出现环而导致无限循环，使用visited标记所有走过的节点。</p>
+</blockquote>
+<p>#树的判定</p>
+<p>树是特殊的无向图，其判定条件如下：</p>
+<ol>
+<li>树上所有节点是联通的</li>
+<li>到任意一点只存在唯一路径 =&gt; 树上不存在环</li>
+<li>两点之间只存在唯一路径</li>
+</ol>
+<p>#有向图的判环</p>
+<blockquote>
+<p>思想：记录从起点开始的访问路径，有向图存在环当且仅当：当前节点访问的下一个相邻节点出现在访问路径中。</p>
+</blockquote>
+<p>算法步骤：</p>
+<ol>
+<li>采用DFS，从任意一点开始遍历图</li>
+<li>使用visited标记已经走过的路径</li>
+<li>使用数组path标记当前走的路径</li>
+<li>遍历当前节点的相邻节点adj<br>当adj出现在路径中，则说明存在环<br>否则递归遍历</li>
+</ol>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">def isDirectedCycleDFS(graph, node, visited, path):&#10;    if visited[node]:&#10;        return true&#10;    visited[node] = true&#10;    path[node] = true&#10;    for adj in graph[node].adjs:&#10;        if path[adj] or !isDirectedCycleDFS(graph, adj, visited, path):&#10;            return false&#10;    path[node] = false&#10;    return true</span><br></pre></td></tr></table></figure>
+<p>#有向图的连通性</p>
+<blockquote>
+<p>思想：对于任意一个点，当它能通往图上其它所有点，且图上其它所有点能到达该点则说明图是联通的</p>
+</blockquote>
+<p>算法步骤：</p>
+<ol>
+<li>从任意一点p开始，检查其是否能通往其它所有点</li>
+<li>将图上的所有连线颠倒</li>
+<li>采用有向图判环方法，从p开始，检查其是否能通往其它所有点<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">def isDirectedConnected(graph):&#10;    init visited array to false&#10;    traverse(graph, 0, visited)&#10;    for flag in visited: #&#26816;&#26597;&#26159;&#21542;&#21487;&#36798;&#20854;&#23427;&#25152;&#26377;&#28857;&#10;        if !flag:&#10;            return fasle&#10;   &#10;    reversed_graph = reverseGraph(graph) #&#23558;&#22270;&#20013;&#36830;&#32447;&#39072;&#20498;&#10;   &#10;    init visited array to false&#10;    traverse(reversed_graph, 0, visited)&#10;    for flag in visited: #&#26816;&#26597;&#26159;&#21542;&#21487;&#36798;&#20854;&#23427;&#25152;&#26377;&#28857;&#10;        if !flag:&#10;            return fasle&#10;    return true</span><br></pre></td></tr></table></figure>
+</li>
+</ol>
+<p>#拓扑排序</p>
+<p>##广度优先遍历</p>
+<blockquote>
+<p>思想： 入度为0的节点表明当前工作可以开始</p>
+</blockquote>
+<ol>
+<li>使用队列保存所有入度为0的节点</li>
+<li>每次从队列中取出节点，进行访问后，扩展相邻的节点，修改相邻节点的入度值，如果为0则加入队列</li>
+<li>如果未遍历为所有节点，则说明出现环(由于环内节点入度都大于0)。<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">for node in graph:&#10;    if node not in inCnt:&#10;        inCnt[node] = 1&#10;    for adj in node.adjs:&#10;        inCnt[adj] += 1&#10;for node, val in inCnt:&#10;    if val == 0:</span><br></pre></td></tr></table></figure>
+</li>
+</ol>
+<p>分析: 可以一边遍历一边输出结果，需要O(n)保存visited,O(n)保存入度,O(n)保存队列</p>
+<p>##深度优先遍历</p>
+<blockquote>
+<p>思想：当一个节点所有相邻节点访问完成后，此节点可以放在工程最后执行</p>
+</blockquote>
+<ol>
+<li>同有向图判环方法类似，遍历整个图</li>
+<li>当所有相邻节点访问完后，将节点加入待访问的最后。</li>
+<li>逆序输出访问节点<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">def dfs(self, topo, path, visited, node):&#10;    if node in visited:&#10;        return True&#10;    visited.add(node)&#10;    path.add(node)&#10;    for neigh in node.neighbors:&#10;        if neigh in path:&#10;            return False&#10;        if neigh not in visited:&#10;            if not self.dfs(topo, path, visited, neigh):&#10;                return False&#10;    topo.append(node)&#10;    path.remove(node)&#10;    return True&#10;&#10;def topSort(self, graph):&#10;    path, visited, topo = set(), set(), []&#10;    for node in graph:&#10;        if not self.dfs(topo, path, visited, node):&#10;            throw DETECT_CYCLE&#10;    topo.reverse()&#10;    return topo</span><br></pre></td></tr></table></figure>
+</li>
+</ol>
+<p>分析：在最后才能输出结果，需要O(n)保存Path,O(n)保存visited, O(n)保存最后结果</p>
+<p>#欧拉回路</p>
+<p>##无向图<br>条件是：</p>
+<ol>
+<li>所有顶点的度为偶数。</li>
+<li>图是联通的<br>对于欧拉路径，起点和终点可以为奇数，其它顶点都为偶数<br>打印欧拉回路：优先访问度为偶数的顶点，当不存在时才访问度为奇数的顶点</li>
+</ol>
+<p>##有向图<br>条件是：</p>
+<ol>
+<li>所有定点的入度等于出度</li>
+<li>图是联通的<br>对于欧拉路径,起点的入度比出度多1，终点的入度比出度少1。</li>
+</ol>
+<p>#有向图的最短路径<br>设有V个顶点，E条边</p>
+<ol>
+<li>无环图<br>使用拓扑排序后，依次更新，复杂度O(V+E)</li>
+<li>有环，无负边<br>Dijkstra, 使用优先队列，每次从队首取出距离最近的顶点，O(E+VlgV)</li>
+<li>有环，有负边<br>BellFord, DP，从底向上计算一个顶点到经过至多i条边后到其他顶点的距离。O(V*E)</li>
+</ol>
+<p><a href="http://www.cnblogs.com/Ixia/p/3917675.html" target="_blank" rel="external">http://www.cnblogs.com/Ixia/p/3917675.html</a><br>邻接矩阵表示法</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://yoursite.com/2015/02/06/graph/" data-id="cih0i58ki0018hqw4gkyov0jc" class="article-share-link">分享到</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/algorithm/">algorithm</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2015/02/06/2drectangle/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">上一篇</strong>
+      <div class="article-nav-title">
+        
+          二维平面n个矩阵形成的面积
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2015/01/27/bit-magic/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">下一篇</strong>
+      <div class="article-nav-title">BitMagic</div>
+    </a>
+  
+</nav>
+
+
+  
+</article>
+
+
+</section>
+      
+        <aside id="sidebar">
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">最新文章</h3>
+    <div class="widget">
+      <ul id="recent-post" class="no-thumbnail">
+        
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category"></p>
+              <p class="item-title"><a href="/2015/11/15/11tech/" class="title">缓存服务如何应对双11</a></p>
+              <p class="item-date"><time datetime="2015-11-15T11:03:44.000Z" itemprop="datePublished">2015-11-15</time></p>
+            </div>
+          </li>
+        
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category"></p>
+              <p class="item-title"><a href="/2015/09/30/git-undo/" class="title">git撤销</a></p>
+              <p class="item-date"><time datetime="2015-09-30T13:05:59.000Z" itemprop="datePublished">2015-09-30</time></p>
+            </div>
+          </li>
+        
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category"></p>
+              <p class="item-title"><a href="/2015/09/27/pytest-fixture/" class="title">pytest fixture</a></p>
+              <p class="item-date"><time datetime="2015-09-27T01:02:29.000Z" itemprop="datePublished">2015-09-27</time></p>
+            </div>
+          </li>
+        
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category"></p>
+              <p class="item-title"><a href="/2015/09/16/ssh/" class="title">ssh config</a></p>
+              <p class="item-date"><time datetime="2015-09-16T11:20:16.000Z" itemprop="datePublished">2015-09-16</time></p>
+            </div>
+          </li>
+        
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category"></p>
+              <p class="item-title"><a href="/2015/08/29/traffic-control/" class="title">云服务的流控设计</a></p>
+              <p class="item-date"><time datetime="2015-08-29T08:02:34.000Z" itemprop="datePublished">2015-08-29</time></p>
+            </div>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+    
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">标签</h3>
+    <div class="widget">
+      <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/algorithm/">algorithm</a><span class="tag-list-count">14</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/life/">life</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/system/">system</a><span class="tag-list-count">12</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tools/">tools</a><span class="tag-list-count">3</span></li></ul>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">归档</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/11/">November 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/09/">September 2015</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/08/">August 2015</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/06/">June 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/05/">May 2015</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/04/">April 2015</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/03/">March 2015</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/02/">February 2015</a><span class="archive-list-count">12</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/01/">January 2015</a><span class="archive-list-count">5</span></li></ul>
+    </div>
+  </div>
+
+  
+  <div id="toTop" class="fa fa-chevron-up"></div>
+</aside>
+      
+    </div>
+    <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      &copy; 2015 Zhe Li<br>
+      Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>. Theme by <a href="http://github.com/ppoffice">PPOffice</a>
+    </div>
+  </div>
+</footer>
+    
+
+
+
+ <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+
+
+
+
+  <link rel="stylesheet" href="/fancybox/jquery.fancybox.css" type="text/css">
+  <script src="/fancybox/jquery.fancybox.pack.js" type="text/javascript"></script>
+
+
+<script src="/js/script.js" type="text/javascript"></script>
+
+  </div>
+</body>
+</html>

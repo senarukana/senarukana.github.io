@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>tinyurl | Zhe Li&#39;s Blog</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="#需求
+
+给定长url 生成短url。
+输入短url返回原始长url。
+
+#分析
+##并发考虑twitter活跃用户1亿，每天发表2贴，1/10有链接，那么每天有2000万个url写并发量为：20,000,000 / 24 / 60/ 60 = 300考虑巅峰20倍，tps为6000，很小。读写比例10：1，qps = 60000，相对较高，考虑到未来扩展需要多个节点。
+##容量考虑采用哈希表存储">
+<meta property="og:type" content="article">
+<meta property="og:title" content="tinyurl">
+<meta property="og:url" content="http://yoursite.com/2015/02/21/tinyurl/index.html">
+<meta property="og:site_name" content="Zhe Li's Blog">
+<meta property="og:description" content="#需求
+
+给定长url 生成短url。
+输入短url返回原始长url。
+
+#分析
+##并发考虑twitter活跃用户1亿，每天发表2贴，1/10有链接，那么每天有2000万个url写并发量为：20,000,000 / 24 / 60/ 60 = 300考虑巅峰20倍，tps为6000，很小。读写比例10：1，qps = 60000，相对较高，考虑到未来扩展需要多个节点。
+##容量考虑采用哈希表存储">
+<meta property="og:updated_time" content="2015-09-29T12:24:44.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="tinyurl">
+<meta name="twitter:description" content="#需求
+
+给定长url 生成短url。
+输入短url返回原始长url。
+
+#分析
+##并发考虑twitter活跃用户1亿，每天发表2贴，1/10有链接，那么每天有2000万个url写并发量为：20,000,000 / 24 / 60/ 60 = 300考虑巅峰20倍，tps为6000，很小。读写比例10：1，qps = 60000，相对较高，考虑到未来扩展需要多个节点。
+##容量考虑采用哈希表存储">
+  
+  
+    <link rel="icon" href="favicon.png">
+  
+  
+ <link href='https://fonts.googleapis.com/css?family=Open+Sans:400italic,400,600' rel='stylesheet' type='text/css'>
+ <link href='https://fonts.googleapis.com/css?family=Source+Code+Pro' rel='stylesheet' type='text/css'>
+
+
+  <link rel="stylesheet" href="/css/style.css" type="text/css">
+  <link rel="stylesheet" href="/font-awesome/css/font-awesome.min.css" type="text/css">
+  
+
+  
+
+  
+</head>
+<body>
+  <div id="container">
+    <header id="header">
+  <div id="header-main" class="header-inner">
+    <div class="outer">
+      <a href="/" id="logo"><i class="logo" style="background-image: url(/css/images/logo.png)"></i><span class="site-title">Zhe Li&#39;s Blog</span></a>
+      <nav id="main-nav">
+        
+          <a class="main-nav-link" href="/.">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+          <a class="main-nav-link" href="/categories">Categories</a>
+        
+          <a class="main-nav-link" href="/tags">Tags</a>
+        
+      </nav>
+      
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" results="0" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit"> </button><input type="hidden" name="sitesearch" value="http://yoursite.com"></form>
+      </div>
+    </div>
+  </div>
+  <div id="main-nav-mobile" class="header-sub header-inner">
+    <table class="menu outer">
+      <tr>
+        
+          <td><a class="main-nav-link" href="/.">Home</a></td>
+        
+          <td><a class="main-nav-link" href="/archives">Archives</a></td>
+        
+          <td><a class="main-nav-link" href="/categories">Categories</a></td>
+        
+          <td><a class="main-nav-link" href="/tags">Tags</a></td>
+        
+        <td>
+          <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" results="0" class="search-form-input" placeholder="Search"><input type="hidden" name="sitesearch" value="http://yoursite.com"></form>
+        </td>
+      </tr>
+    </table>
+  </div>
+</header>
+
+    <div class="outer">
+      
+      <section id="main"><article id="post-tinyurl" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-inner">
+    
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      tinyurl
+    </h1>
+  
+
+        <div class="article-meta">
+          
+  <div class="article-date">
+    <i class="fa fa-calendar"></i>
+    <a href="/2015/02/21/tinyurl/">
+      <time datetime="2015-02-21T11:02:59.000Z" itemprop="datePublished">2015-02-21</time>
+    </a>
+  </div>
+
+
+          
+        </div>
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+                
+        <p>#需求</p>
+<ol>
+<li>给定长url 生成短url。</li>
+<li>输入短url返回原始长url。</li>
+</ol>
+<p>#分析</p>
+<p>##并发<br>考虑twitter活跃用户1亿，每天发表2贴，1/10有链接，那么每天有2000万个url<br>写并发量为：20,000,000 / 24 / 60/ 60 = 300<br>考虑巅峰20倍，tps为6000，很小。<br>读写比例10：1，qps = 60000，相对较高，考虑到未来扩展需要多个节点。</p>
+<p>##容量<br>考虑采用哈希表存储映射关系，短url 64字节，长url256字节，考虑哈希表的开销是本省的两倍,存储两年之内的url映射<br>(64+256)B <em> 20,000,000</em>365*2 = 5TB<br>数据规模较大，内存存不下，考虑存储时采用基于K/V的永久化存储。</p>
+<p>#系统原型<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">      client&#10;        |&#10;      proxy&#10;  /     |    \&#10;node1  node2  node3</span><br></pre></td></tr></table></figure></p>
+<a id="more"></a> 
+<p>采用双层架构，proxy负责请求的接受和转发，下层节点负责url的生成和存储。</p>
+<p>node节点生成url时，通过维护一个自增长id，对其进行哈希运算截断得到。</p>
+<ol>
+<li>从id生成器中获取id</li>
+<li>对其进行诸如base64编码</li>
+<li>截取id前k位作为短url</li>
+<li>将结果存入哈希表中即可</li>
+</ol>
+<p>考虑简单的情况，在启动之初根据并发情况使用三台服务器。<br>Proxy在接收到请求时，采用对key进行哈希mod3之后将请求转发到对应的node节点。<br>每个node节点其id初始化分别为0,1,2，同时每次请求将其值增加3，从而确保生成的值是全局唯一的。</p>
+<p>##系统的扩展<br>由于访问各个url的流量可能不均衡，导致各个节点的热度不一。在此时，需要对路由的规则进行修改，而不再采用mod。</p>
+<p>办法1：分裂<br>proxy仍然使用mod方式对请求进行转发，但不再是一层路由而是多层。<br>如1号节点压力过大时，可考虑使用两台机器负责原来1号节点数据。<br>分裂的办法为，首先将1号节点数据按照id取模方式均匀分成两份，将另一份数据存储在新的节点。<br>更新proxy的路由，使得原来转发到1节点的数据进行再一次取模运算，再将请求进行转发。</p>
+<p>办法2：虚拟节点<br>方法1的扩容方式只能是针对单个节点的成倍扩容，而不够灵活。我们可以在系统启动之初，将系统分成多个虚拟节点(如65535)。<br>将虚拟节点均匀分散到各个存储节点之中。节点运算id时的方式仍保持和原来不变。<br>这样当系统过热时，可将部分虚拟节点的数据移动到新的物理节点。</p>
+<p>##系统的容灾<br>使用哈希表时，可考虑使用外部K/V存储，如Redis或者HBase。开启其复制功能。<br>此时系统是无状态的，当服务宕机，并不影响真正的数据。<br>每个服务节点node可采用主/从形式，当主节点宕机后，从节点可迅速启动开始服务。<br>由于外部存储提供高可靠性，系统具有秒级切换的高可用性。</p>
+<p>##编码方式的选择</p>
+<ol>
+<li>val = MD5(id)</li>
+<li>val2 =  Base64(val)</li>
+<li>res = Trunc(val2, 5)<br>##问题<br>编码存在冲突，冲突概率为1/2^(6*k)。</li>
+</ol>
+<p>#Follow up</p>
+<ol>
+<li>如何防止Url被爬<br>实现一套自己的编码方式，如对Base64进行小幅度修改</li>
+<li>如何限制用户每秒访问次数访问<br>a) 使用LRUCache进行实现<br>Key是用每个用户的标示(id, cookie)+操作时间<br>Val为当前时间操作次数<br>当Val超过阀值则禁止访问</li>
+<li>跳转服务如何实现<br>a) 返回HTTP 302,指定url地址即可<br>b) 使用nginx之类服务的redirect模块</li>
+</ol>
+<p>#总结<br>这是个经典的数据存储和访问问题，有许多类似的题目如autocomplete。在回答时，均可采用基于代理的设计，通过更改路由，从而实现集群的扩展。一致性哈希也是解决此类问题的一个常见办法。<br>在系统可靠性上，主从复制,Paxos，Quorum Read, Hinted Handoff等方面内容也可提及。</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://yoursite.com/2015/02/21/tinyurl/" data-id="cih0i58ji000chqw4qmt6w75f" class="article-share-link">分享到</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/system/">system</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2015/02/24/graduate/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">上一篇</strong>
+      <div class="article-nav-title">
+        
+          我的研究生
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2015/02/21/candy/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">下一篇</strong>
+      <div class="article-nav-title">candy</div>
+    </a>
+  
+</nav>
+
+
+  
+</article>
+
+
+</section>
+      
+        <aside id="sidebar">
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">最新文章</h3>
+    <div class="widget">
+      <ul id="recent-post" class="no-thumbnail">
+        
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category"></p>
+              <p class="item-title"><a href="/2015/11/15/11tech/" class="title">缓存服务如何应对双11</a></p>
+              <p class="item-date"><time datetime="2015-11-15T11:03:44.000Z" itemprop="datePublished">2015-11-15</time></p>
+            </div>
+          </li>
+        
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category"></p>
+              <p class="item-title"><a href="/2015/09/30/git-undo/" class="title">git撤销</a></p>
+              <p class="item-date"><time datetime="2015-09-30T13:05:59.000Z" itemprop="datePublished">2015-09-30</time></p>
+            </div>
+          </li>
+        
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category"></p>
+              <p class="item-title"><a href="/2015/09/27/pytest-fixture/" class="title">pytest fixture</a></p>
+              <p class="item-date"><time datetime="2015-09-27T01:02:29.000Z" itemprop="datePublished">2015-09-27</time></p>
+            </div>
+          </li>
+        
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category"></p>
+              <p class="item-title"><a href="/2015/09/16/ssh/" class="title">ssh config</a></p>
+              <p class="item-date"><time datetime="2015-09-16T11:20:16.000Z" itemprop="datePublished">2015-09-16</time></p>
+            </div>
+          </li>
+        
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category"></p>
+              <p class="item-title"><a href="/2015/08/29/traffic-control/" class="title">云服务的流控设计</a></p>
+              <p class="item-date"><time datetime="2015-08-29T08:02:34.000Z" itemprop="datePublished">2015-08-29</time></p>
+            </div>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+    
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">标签</h3>
+    <div class="widget">
+      <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/algorithm/">algorithm</a><span class="tag-list-count">14</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/life/">life</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/system/">system</a><span class="tag-list-count">12</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tools/">tools</a><span class="tag-list-count">3</span></li></ul>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">归档</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/11/">November 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/09/">September 2015</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/08/">August 2015</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/06/">June 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/05/">May 2015</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/04/">April 2015</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/03/">March 2015</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/02/">February 2015</a><span class="archive-list-count">12</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/01/">January 2015</a><span class="archive-list-count">5</span></li></ul>
+    </div>
+  </div>
+
+  
+  <div id="toTop" class="fa fa-chevron-up"></div>
+</aside>
+      
+    </div>
+    <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      &copy; 2015 Zhe Li<br>
+      Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>. Theme by <a href="http://github.com/ppoffice">PPOffice</a>
+    </div>
+  </div>
+</footer>
+    
+
+
+
+ <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+
+
+
+
+  <link rel="stylesheet" href="/fancybox/jquery.fancybox.css" type="text/css">
+  <script src="/fancybox/jquery.fancybox.pack.js" type="text/javascript"></script>
+
+
+<script src="/js/script.js" type="text/javascript"></script>
+
+  </div>
+</body>
+</html>

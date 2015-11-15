@@ -1,0 +1,864 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>Zhe Li&#39;s Blog</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="Zhe Li">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Zhe Li's Blog">
+<meta property="og:url" content="http://yoursite.com/page/3/index.html">
+<meta property="og:site_name" content="Zhe Li's Blog">
+<meta property="og:description" content="Zhe Li">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Zhe Li's Blog">
+<meta name="twitter:description" content="Zhe Li">
+  
+  
+    <link rel="icon" href="favicon.png">
+  
+  
+ <link href='https://fonts.googleapis.com/css?family=Open+Sans:400italic,400,600' rel='stylesheet' type='text/css'>
+ <link href='https://fonts.googleapis.com/css?family=Source+Code+Pro' rel='stylesheet' type='text/css'>
+
+
+  <link rel="stylesheet" href="/css/style.css" type="text/css">
+  <link rel="stylesheet" href="/font-awesome/css/font-awesome.min.css" type="text/css">
+  
+
+  
+
+  
+</head>
+<body>
+  <div id="container">
+    <header id="header">
+  <div id="header-main" class="header-inner">
+    <div class="outer">
+      <a href="/" id="logo"><i class="logo" style="background-image: url(/css/images/logo.png)"></i><span class="site-title">Zhe Li&#39;s Blog</span></a>
+      <nav id="main-nav">
+        
+          <a class="main-nav-link" href="/.">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+          <a class="main-nav-link" href="/categories">Categories</a>
+        
+          <a class="main-nav-link" href="/tags">Tags</a>
+        
+      </nav>
+      
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" results="0" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit"> </button><input type="hidden" name="sitesearch" value="http://yoursite.com"></form>
+      </div>
+    </div>
+  </div>
+  <div id="main-nav-mobile" class="header-sub header-inner">
+    <table class="menu outer">
+      <tr>
+        
+          <td><a class="main-nav-link" href="/.">Home</a></td>
+        
+          <td><a class="main-nav-link" href="/archives">Archives</a></td>
+        
+          <td><a class="main-nav-link" href="/categories">Categories</a></td>
+        
+          <td><a class="main-nav-link" href="/tags">Tags</a></td>
+        
+        <td>
+          <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" results="0" class="search-form-input" placeholder="Search"><input type="hidden" name="sitesearch" value="http://yoursite.com"></form>
+        </td>
+      </tr>
+    </table>
+  </div>
+</header>
+
+    <div class="outer">
+      
+      <section id="main">
+      <article id="post-contain-duplicate" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-inner">
+    
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2015/02/16/contain-duplicate/">Contain Duplicate</a>
+    </h1>
+  
+
+        <div class="article-meta">
+          
+  <div class="article-date">
+    <i class="fa fa-calendar"></i>
+    <a href="/2015/02/16/contain-duplicate/">
+      <time datetime="2015-02-16T05:03:44.000Z" itemprop="datePublished">2015-02-16</time>
+    </a>
+  </div>
+
+
+          
+        </div>
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+                
+        <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Given an array of integers and an integer k, find out whether there there are two distinct indices i and j in the array such that nums[i] = nums[j] and the difference between i and j is at most k.</span><br></pre></td></tr></table></figure>
+<p>思想：使用哈希表存储最近出现的k个元素，对于每个元素检查其是否在哈希表中即可。<br>做法步骤：</p>
+<ol>
+<li>初始时哈希表为空</li>
+<li>对于每一个元素i，检查其是否在哈希表中，如果是则返回。</li>
+<li>如果不是，则将其插入到哈希表中</li>
+<li>当哈希表元素超过k个时，删除第i-k个元素</li>
+</ol>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">def containsNearbyDuplicate(nums, k):&#10;    if k == 0:&#10;        return False&#10;    dic = &#123;&#125;&#10;    for i, num in enumerate(nums):&#10;        if num in dic:&#10;            return True&#10;        dic[num] = i&#10;        if i &#62;= k:&#10;            del dic[nums[i-k]]&#10;    return False</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>Given an array of integers, find out whether there are two distinct indices i and j in the array such that the difference between nums[i] and nums[j] is at most t and the difference between i and j is at most k.</p>
+</blockquote>
+<p>这一题是对上一题的扩展，允许元素的差值最大为k。<br>思想：每个元素除以t后得到v，仅需检查[v/t-1, v/t, v/t+1]这三个值是否在哈希表中即可判断是否存在差值小于k的元素</p>
+<p>做法步骤：将每个元素值num除以t存入哈希表中。哈希表存储最近k个元素。</p>
+<ol>
+<li>初始时哈希表为空</li>
+<li>对于每一个元素i，将其除以t，得到key。</li>
+<li>检查[key-1, key, key+1]是否在哈希表中存在。如果存在，检查其实际值的差是否小于t</li>
+<li>如果不存在，将val存入哈希表中，并记录其实际值: dict[num[i]/t] = num[i]</li>
+<li>当哈希表元素超过k个时，删除第i-k个元素</li>
+</ol>
+<p>当t等于0时，需要进行特殊处理。此时key=num<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&#10;def containsNearbyAlmostDuplicate(self, nums, k, t):&#10;    if k &#60; 1 or t &#60; 0:&#10;        return False&#10;    dic = &#123;&#125;&#10;    for i, num in enumerate(nums):&#10;        key = num / t if t else num&#10;        for v in [key-1, key, key+1]:&#10;            if v in dic and abs(dic[v] - num) &#60;= t:&#10;                return True&#10;        if len(dic) == k:&#10;            prevKey = nums[i-k] / t if t else nums[i-k]&#10;            del dic[prevKey]&#10;        dic[key] = num&#10;    return False</span><br></pre></td></tr></table></figure></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://yoursite.com/2015/02/16/contain-duplicate/" data-id="cih0i58ku001ihqw4qyngk37j" class="article-share-link">分享到</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/algorithm/">algorithm</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+    
+      <article id="post-tree-visit" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-inner">
+    
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2015/02/16/tree-visit/">TreeVisit</a>
+    </h1>
+  
+
+        <div class="article-meta">
+          
+  <div class="article-date">
+    <i class="fa fa-calendar"></i>
+    <a href="/2015/02/16/tree-visit/">
+      <time datetime="2015-02-16T05:02:12.000Z" itemprop="datePublished">2015-02-16</time>
+    </a>
+  </div>
+
+
+          
+        </div>
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>#二叉树的遍历</p>
+<p>##非递归 Morris</p>
+<p>思想是利用prev节点(左孩子的最右子节点)的右节点保存当前node节点，从而保证能安全访问左节点并且能退回当前节点。</p>
+<p>对于前序遍历和中序遍历，均是按照左、中、右的访问方式，遍历整个树结构，分别用cur和prev表示当前节点和上一个节点。prev节点是为了防止左节点已经被访问过。中序遍历算法流程为：</p>
+<blockquote>
+<ol>
+<li>如果cur左节点存在，则根据prev指针的右孩子节点情况考虑遍历左子树还是右子树。<br>1.1. 如果prev的右孩子为空，则说明左子树还未访问。<br>此时访问左子树，并设置prev的右指针为当前节点。<br>1.2. 如果prev的右孩子不为空，则说明左子树已经访问完成，访问右子树。<br>此时复原指针，重新设置prev的右指针为空，并将当前指针设置为右孩子即可</li>
+<li>如果cur左节点不存在，访问该节点，并设置节点指针为右孩子即可。
+        
+          <p class="article-more-link">
+            <a href="/2015/02/16/tree-visit/#more">Read More</a>
+          </p>
+        
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://yoursite.com/2015/02/16/tree-visit/" data-id="cih0i58j10006hqw4vj35avr3" class="article-share-link">分享到</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/algorithm/">algorithm</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+    
+      <article id="post-binary-tree-right-side-view" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-inner">
+    
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2015/02/16/binary-tree-right-side-view/">Binary Tree Right Side View</a>
+    </h1>
+  
+
+        <div class="article-meta">
+          
+  <div class="article-date">
+    <i class="fa fa-calendar"></i>
+    <a href="/2015/02/16/binary-tree-right-side-view/">
+      <time datetime="2015-02-16T04:10:11.000Z" itemprop="datePublished">2015-02-16</time>
+    </a>
+  </div>
+
+
+          
+        </div>
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Given a binary tree, imagine yourself standing on the right side of it, return the values of the nodes you can see ordered from top to bottom.&#10;For example:&#10;Given the following binary tree,&#10;   1            &#60;---&#10; /   \&#10;2     3         &#60;---&#10; \     \&#10;  5     4       &#60;---&#10;&#10;You should return [1, 3, 4].</span><br></pre></td></tr></table></figure>
+        
+          <p class="article-more-link">
+            <a href="/2015/02/16/binary-tree-right-side-view/#more">Read More</a>
+          </p>
+        
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://yoursite.com/2015/02/16/binary-tree-right-side-view/" data-id="cih0i58l3001ohqw4ceasnf79" class="article-share-link">分享到</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/algorithm/">algorithm</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+    
+      <article id="post-robber" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-inner">
+    
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2015/02/16/robber/">聪明的小偷</a>
+    </h1>
+  
+
+        <div class="article-meta">
+          
+  <div class="article-date">
+    <i class="fa fa-calendar"></i>
+    <a href="/2015/02/16/robber/">
+      <time datetime="2015-02-16T03:20:16.000Z" itemprop="datePublished">2015-02-16</time>
+    </a>
+  </div>
+
+
+          
+        </div>
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h1 id="Robber">Robber</h1><blockquote>
+<p>有个聪明的小偷，打算偷一连串的房间。为了不被人发现，相邻的房间最多只偷一个。假设每个房间的价值为a[i]，问最大能偷取的价值。</p>
+</blockquote>
+<p>如果价值都大于0，那么对于每间房间有两种情况，要么不偷，要么偷（此时不能偷前面一家），则存在递推公式如下：</p>
+<blockquote>
+<p>dp[i] represents best value for robber to rob a[0..i]<br>    dp[i] = max(dp[i-1], dp[i-2]+a[i])</p>
+</blockquote>
+<p>如果存在价值小于0的，那么对于该房间选择显然是不偷的，此时：</p>
+<blockquote>
+<p>dp[i] = max(dp[i-1], dp[i-2] + c) c = a[i] if a[i] &gt; 0 else 0</p>
+</blockquote>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">def rob(self, nums):&#10;    dp = deque([0] * 2)&#10;    for i, num in enumerate(nums):&#10;        c = num if num &#62; 0 else 0&#10;        val = max(dp[-1], dp[-2]+c)&#10;        dp.popleft()&#10;        dp.append(val)&#10;    return dp[-1]</span><br></pre></td></tr></table></figure>
+<h1 id="Robber2">Robber2</h1><blockquote>
+<p>聪明的小偷发现相邻房间不偷还是不安全，更改条件为相邻k家都不能偷，问此时能得到的最大价值。<br>
+        
+          <p class="article-more-link">
+            <a href="/2015/02/16/robber/#more">Read More</a>
+          </p>
+        
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://yoursite.com/2015/02/16/robber/" data-id="cih0i58jr000lhqw4znqrbjz8" class="article-share-link">分享到</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/algorithm/">algorithm</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+    
+      <article id="post-string-encode" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-inner">
+    
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2015/02/10/string-encode/">字符串的编码</a>
+    </h1>
+  
+
+        <div class="article-meta">
+          
+  <div class="article-date">
+    <i class="fa fa-calendar"></i>
+    <a href="/2015/02/10/string-encode/">
+      <time datetime="2015-02-10T05:02:34.000Z" itemprop="datePublished">2015-02-10</time>
+    </a>
+  </div>
+
+
+          
+        </div>
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h1 id="字符串的编码">字符串的编码</h1><p>字符串的编码是一个生活中随处都要使用到的问题，本篇文章将从最基本的编码方式说起。<br>最简单的办法可在每个单词前纪录单词长度，并用特殊字符分割即可。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">def encode1(words):&#10;    res = &#34;&#34;&#10;    for word in words:&#10;        res += str(len(word)) + &#39;:&#39; + word&#10;    return res</span><br></pre></td></tr></table></figure></p>
+<p>有时可能找不到一个合理的分隔符，同时此编码方式长度部分并没有表示字符串本身值，实际上是浪费的。</p>
+<p>为了解决上面两个问题，使用两个特殊字符来标示单词之间的分割，如Linux采用\t\n分割。<br>当字符中出现\t时，需在其后面再补上\t。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">def encode2(words):&#10;    res = &#34;&#34;&#10;    for word in words:&#10;        for c in word:&#10;            if c != &#39;\t&#39;:&#10;                res += c&#10;            else:&#10;                res += &#39;\t\t&#39;&#10;        res += &#39;\t\n&#39;&#10;    return res&#10;&#10;&#10;def decode2(s):&#10;    word, words = &#34;&#34;, []&#10;    i = 0&#10;    while i &#60; len(s):&#10;        if s[i] != &#39;\t&#39;:&#10;            word += s[i]&#10;            i += 1&#10;        else:&#10;            if s[i+1] == &#39;\t&#39;:&#10;                word += &#39;\t&#39;&#10;            elif s[i+1] == &#39;\n&#39;:&#10;                words.append(word)&#10;                word = &#34;&#34;&#10;            else:&#10;                return []  # invalid&#10;            i += 2&#10;    return words</span><br></pre></td></tr></table></figure></p>
+<p>上述编码还可进行一个简单的优化，将重复的字符用数字表示。<br>如aacccd -&gt; a2c3d<br>
+        
+          <p class="article-more-link">
+            <a href="/2015/02/10/string-encode/#more">Read More</a>
+          </p>
+        
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://yoursite.com/2015/02/10/string-encode/" data-id="cih0i58jm000ghqw4g4x2hoek" class="article-share-link">分享到</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/algorithm/">algorithm</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+    
+      <article id="post-2drectangle" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-inner">
+    
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2015/02/06/2drectangle/">二维平面n个矩阵形成的面积</a>
+    </h1>
+  
+
+        <div class="article-meta">
+          
+  <div class="article-date">
+    <i class="fa fa-calendar"></i>
+    <a href="/2015/02/06/2drectangle/">
+      <time datetime="2015-02-06T05:03:44.000Z" itemprop="datePublished">2015-02-06</time>
+    </a>
+  </div>
+
+
+          
+        </div>
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <blockquote>
+<p>给定二维平面n个矩阵，矩阵采用三元组表示(left, right, height)分别表示矩阵的左端点，右端点，以及高。矩阵都以地面作为底边。<br>矩阵可能相交。求n个矩阵围成的面积。<br>
+        
+          <p class="article-more-link">
+            <a href="/2015/02/06/2drectangle/#more">Read More</a>
+          </p>
+        
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://yoursite.com/2015/02/06/2drectangle/" data-id="cih0i58ib0000hqw47rdd7j52" class="article-share-link">分享到</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/algorithm/">algorithm</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+    
+      <article id="post-graph" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-inner">
+    
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2015/02/06/graph/">Graph</a>
+    </h1>
+  
+
+        <div class="article-meta">
+          
+  <div class="article-date">
+    <i class="fa fa-calendar"></i>
+    <a href="/2015/02/06/graph/">
+      <time datetime="2015-02-06T05:02:29.000Z" itemprop="datePublished">2015-02-06</time>
+    </a>
+  </div>
+
+
+          
+        </div>
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+                
+        <p>#无向图的判环</p>
+<blockquote>
+<p>思想：如果一个点被访问两次，则说明存在两条不同的路径到达该点。将这两条路径连接起来，则必然存在环。</p>
+</blockquote>
+<p>算法步骤：</p>
+<ol>
+<li>采用DFS，从任意一点开始遍历图</li>
+<li>使用visited标记已经走过的路径</li>
+<li>由于对于无向图，当前节点与相邻节点必然存在双向路径，使用parent标记父亲节点</li>
+<li>遍历当前节点的所有相邻节点adj<br>如果当相邻节点adj不是父亲节点，且已经访问过，则说明存在环，直接返回存在环。<br>否则递归遍历相邻节点</li>
+</ol>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">def isUndirectedCycleDFS(graph, node, visited, parent):&#10;    if visited[node]:&#10;        return false&#10;    visited[node] = true&#10;    for adj in graph[node].adjs:&#10;        if adj != parent and visited[adj]: #&#27492;&#28857;&#24050;&#32463;&#34987;&#35775;&#38382;&#65292;&#19988;&#19981;&#26159;&#29238;&#20146;&#33410;&#28857;&#10;            return false&#10;        if !isUndirectedCycleDFS(graph, adj, visited, node): #&#23376;&#33410;&#28857;&#23384;&#22312;&#29615;&#65292;&#30452;&#25509;&#36820;&#22238;&#10;            return false&#10;    return true</span><br></pre></td></tr></table></figure>
+<p>#无向图的连通性</p>
+<blockquote>
+<p>思想：从任意一点开始，可以完整遍历图中所有节点。为了避免图中出现环而导致无限循环，使用visited标记所有走过的节点。</p>
+</blockquote>
+<p>#树的判定</p>
+<p>树是特殊的无向图，其判定条件如下：</p>
+<ol>
+<li>树上所有节点是联通的</li>
+<li>到任意一点只存在唯一路径 =&gt; 树上不存在环</li>
+<li>两点之间只存在唯一路径</li>
+</ol>
+<p>#有向图的判环</p>
+<blockquote>
+<p>思想：记录从起点开始的访问路径，有向图存在环当且仅当：当前节点访问的下一个相邻节点出现在访问路径中。</p>
+</blockquote>
+<p>算法步骤：</p>
+<ol>
+<li>采用DFS，从任意一点开始遍历图</li>
+<li>使用visited标记已经走过的路径</li>
+<li>使用数组path标记当前走的路径</li>
+<li>遍历当前节点的相邻节点adj<br>当adj出现在路径中，则说明存在环<br>否则递归遍历</li>
+</ol>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">def isDirectedCycleDFS(graph, node, visited, path):&#10;    if visited[node]:&#10;        return true&#10;    visited[node] = true&#10;    path[node] = true&#10;    for adj in graph[node].adjs:&#10;        if path[adj] or !isDirectedCycleDFS(graph, adj, visited, path):&#10;            return false&#10;    path[node] = false&#10;    return true</span><br></pre></td></tr></table></figure>
+<p>#有向图的连通性</p>
+<blockquote>
+<p>思想：对于任意一个点，当它能通往图上其它所有点，且图上其它所有点能到达该点则说明图是联通的</p>
+</blockquote>
+<p>算法步骤：</p>
+<ol>
+<li>从任意一点p开始，检查其是否能通往其它所有点</li>
+<li>将图上的所有连线颠倒</li>
+<li>采用有向图判环方法，从p开始，检查其是否能通往其它所有点<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">def isDirectedConnected(graph):&#10;    init visited array to false&#10;    traverse(graph, 0, visited)&#10;    for flag in visited: #&#26816;&#26597;&#26159;&#21542;&#21487;&#36798;&#20854;&#23427;&#25152;&#26377;&#28857;&#10;        if !flag:&#10;            return fasle&#10;   &#10;    reversed_graph = reverseGraph(graph) #&#23558;&#22270;&#20013;&#36830;&#32447;&#39072;&#20498;&#10;   &#10;    init visited array to false&#10;    traverse(reversed_graph, 0, visited)&#10;    for flag in visited: #&#26816;&#26597;&#26159;&#21542;&#21487;&#36798;&#20854;&#23427;&#25152;&#26377;&#28857;&#10;        if !flag:&#10;            return fasle&#10;    return true</span><br></pre></td></tr></table></figure>
+</li>
+</ol>
+<p>#拓扑排序</p>
+<p>##广度优先遍历</p>
+<blockquote>
+<p>思想： 入度为0的节点表明当前工作可以开始</p>
+</blockquote>
+<ol>
+<li>使用队列保存所有入度为0的节点</li>
+<li>每次从队列中取出节点，进行访问后，扩展相邻的节点，修改相邻节点的入度值，如果为0则加入队列</li>
+<li>如果未遍历为所有节点，则说明出现环(由于环内节点入度都大于0)。<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">for node in graph:&#10;    if node not in inCnt:&#10;        inCnt[node] = 1&#10;    for adj in node.adjs:&#10;        inCnt[adj] += 1&#10;for node, val in inCnt:&#10;    if val == 0:</span><br></pre></td></tr></table></figure>
+</li>
+</ol>
+<p>分析: 可以一边遍历一边输出结果，需要O(n)保存visited,O(n)保存入度,O(n)保存队列</p>
+<p>##深度优先遍历</p>
+<blockquote>
+<p>思想：当一个节点所有相邻节点访问完成后，此节点可以放在工程最后执行</p>
+</blockquote>
+<ol>
+<li>同有向图判环方法类似，遍历整个图</li>
+<li>当所有相邻节点访问完后，将节点加入待访问的最后。</li>
+<li>逆序输出访问节点<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">def dfs(self, topo, path, visited, node):&#10;    if node in visited:&#10;        return True&#10;    visited.add(node)&#10;    path.add(node)&#10;    for neigh in node.neighbors:&#10;        if neigh in path:&#10;            return False&#10;        if neigh not in visited:&#10;            if not self.dfs(topo, path, visited, neigh):&#10;                return False&#10;    topo.append(node)&#10;    path.remove(node)&#10;    return True&#10;&#10;def topSort(self, graph):&#10;    path, visited, topo = set(), set(), []&#10;    for node in graph:&#10;        if not self.dfs(topo, path, visited, node):&#10;            throw DETECT_CYCLE&#10;    topo.reverse()&#10;    return topo</span><br></pre></td></tr></table></figure>
+</li>
+</ol>
+<p>分析：在最后才能输出结果，需要O(n)保存Path,O(n)保存visited, O(n)保存最后结果</p>
+<p>#欧拉回路</p>
+<p>##无向图<br>条件是：</p>
+<ol>
+<li>所有顶点的度为偶数。</li>
+<li>图是联通的<br>对于欧拉路径，起点和终点可以为奇数，其它顶点都为偶数<br>打印欧拉回路：优先访问度为偶数的顶点，当不存在时才访问度为奇数的顶点</li>
+</ol>
+<p>##有向图<br>条件是：</p>
+<ol>
+<li>所有定点的入度等于出度</li>
+<li>图是联通的<br>对于欧拉路径,起点的入度比出度多1，终点的入度比出度少1。</li>
+</ol>
+<p>#有向图的最短路径<br>设有V个顶点，E条边</p>
+<ol>
+<li>无环图<br>使用拓扑排序后，依次更新，复杂度O(V+E)</li>
+<li>有环，无负边<br>Dijkstra, 使用优先队列，每次从队首取出距离最近的顶点，O(E+VlgV)</li>
+<li>有环，有负边<br>BellFord, DP，从底向上计算一个顶点到经过至多i条边后到其他顶点的距离。O(V*E)</li>
+</ol>
+<p><a href="http://www.cnblogs.com/Ixia/p/3917675.html" target="_blank" rel="external">http://www.cnblogs.com/Ixia/p/3917675.html</a><br>邻接矩阵表示法</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://yoursite.com/2015/02/06/graph/" data-id="cih0i58ki0018hqw4gkyov0jc" class="article-share-link">分享到</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/algorithm/">algorithm</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+    
+      <article id="post-bit-magic" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-inner">
+    
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2015/01/27/bit-magic/">BitMagic</a>
+    </h1>
+  
+
+        <div class="article-meta">
+          
+  <div class="article-date">
+    <i class="fa fa-calendar"></i>
+    <a href="/2015/01/27/bit-magic/">
+      <time datetime="2015-01-27T05:02:03.000Z" itemprop="datePublished">2015-01-27</time>
+    </a>
+  </div>
+
+
+          
+        </div>
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+                
+        <p>#逆转比特位</p>
+<blockquote>
+<p>给定数字n，求颠倒每一位bit后产生的结果。</p>
+<ol>
+<li>循环移位<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">unsigned int count = sizeof(int)*8&#10;unsigned int reverse_num = 0&#10;while num != 0:&#10;    reverse_num |= (n &#38; 1)&#60;&#60;count;&#10;    n &#62;&#62;= 1;&#10;    --count;&#10;return reverse_num</span><br></pre></td></tr></table></figure>
+</li>
+</ol>
+</blockquote>
+<ol>
+<li>二分<br>两两之间、再求四四之间、递进求到16进行互相的交换<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">n = (((n &#38; 0x55555555)&#60;&#60;1) | ((n&#62;&#62;1) &#38; 0x55555555));&#10;n = (((n &#38; 0x33333333)&#60;&#60;2) | ((n&#62;&#62;2) &#38; 0x33333333));&#10;n = (((n &#38; 0x0f0f0f0f)&#60;&#60;4) | ((n&#62;&#62;4) &#38; 0x0f0f0f0f));&#10;n = (((n &#38; 0x00ff00ff)&#60;&#60;8) | ((n&#62;&#62;8) &#38; 0x00ff00ff));&#10;n = (((n &#38; 0x0000ffff)&#60;&#60;16) | ((n&#62;&#62;16) &#38; 0x0000ffff));&#10;return n;</span><br></pre></td></tr></table></figure>
+</li>
+</ol>
+<p>对于数字的移位操作，需要保证数字是无符号整数，否则可能是算数移位 或者 逻辑移位，依赖于具体的实现。</p>
+<p>#整数二进制中1的数量</p>
+<ol>
+<li><p>n &amp; (n-1) 去掉最低1</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">while n:&#10;    c += 1&#10;    n &#38; = n-1</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>n &amp; (-n) 得到最低位1</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">while n:&#10;    c += 1&#10;    n -= n &#38; (-n)</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>二分<br>和Reverse Bit方法类似，先求两两之间、再求四四之间、递进求到16求1的数目</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">n = (n &#38; (0x55555555)) + ((n &#62;&#62; 1) &#38; 0x55555555)&#10;n = (n &#38; (0x33333333)) + ((n &#62;&#62; 2) &#38; 0x33333333)&#10;n = (n &#38; (0x0f0f0f0f)) + ((n &#62;&#62; 4) &#38; 0x0f0f0f0f)&#10;n = (n &#38; (0x00ff00ff)) + ((n &#62;&#62; 8) &#38; 0x00ff00ff)&#10;n = (n &#38; (0x0000ffff)) + ((n &#62;&#62; 16) &#38; 0x0000ffff)&#10;return n</span><br></pre></td></tr></table></figure>
+</li>
+</ol>
+<p>#Next Power of 2<br>通过n &amp; (n-1) 获取最高位，再左移一位即可，注意检查是否为0:<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">next_pow = n &#38; (n-1)&#10;if next_pow == 0:&#10;    return n&#10;return next_pow &#60;&#60; 1</span><br></pre></td></tr></table></figure></p>
+<p>#A * B 不能用乘法，除法<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">res = 0&#10;isNeg = (a &#62; 0 and b &#60; 0) or (a &#60; 0 and b &#62; 0)&#10;for i in range(63):&#10;    if ((b &#62;&#62; i) &#38; 1) &#62; 0:&#10;        tmp = res + (a &#60;&#60; i) #&#32771;&#34385;&#26159;&#21542;&#36234;&#30028;&#10;        if tmp &#60; res:&#10;            return isNeg ? MIN_INT : MAXINT&#10;        res = tmp&#10;return res</span><br></pre></td></tr></table></figure></p>
+<p>#A / B 不能用乘法，除法<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">res = 0&#10;isNeg = (a &#62; 0 and b &#60; 0) or (a &#60; 0 and b &#62; 0)&#10;while a &#62;= b:&#10;    power = 1&#10;    while ((b&#60;&#60;power) &#62;= (b&#60;&#60;(power-1))) and (b&#60;&#60;power) &#60;= a:&#10;        power += 1&#10;    res |= 1&#60;&#60;(power-1)&#10;    a -= (b&#60;&#60;(power-1))&#10;if isNeg:&#10;    res *= -1</span><br></pre></td></tr></table></figure></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://yoursite.com/2015/01/27/bit-magic/" data-id="cih0i58l1001mhqw49nz7f7v1" class="article-share-link">分享到</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/algorithm/">algorithm</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+    
+      <article id="post-substring" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-inner">
+    
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2015/01/26/substring/">substring</a>
+    </h1>
+  
+
+        <div class="article-meta">
+          
+  <div class="article-date">
+    <i class="fa fa-calendar"></i>
+    <a href="/2015/01/26/substring/">
+      <time datetime="2015-01-26T05:02:42.000Z" itemprop="datePublished">2015-01-26</time>
+    </a>
+  </div>
+
+
+          
+        </div>
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>#出现多于一次的最长的子串<br>eg: “abcabcbcb” -&gt; “abc”<br>eg: “aababa” -&gt; “aba”<br>解法：为后缀建立Trie树，建树过程中，找到最长的。<br>代码：<a href="https://gist.github.com/senarukana/25b759f1ef1d28405dce">https://gist.github.com/senarukana/25b759f1ef1d28405dce</a><br>
+        
+          <p class="article-more-link">
+            <a href="/2015/01/26/substring/#more">Read More</a>
+          </p>
+        
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://yoursite.com/2015/01/26/substring/" data-id="cih0i58jk000ehqw4fqi6bsl5" class="article-share-link">分享到</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/algorithm/">algorithm</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+    
+      <article id="post-tree-encode" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-inner">
+    
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2015/01/20/tree-encode/">树的编码</a>
+    </h1>
+  
+
+        <div class="article-meta">
+          
+  <div class="article-date">
+    <i class="fa fa-calendar"></i>
+    <a href="/2015/01/20/tree-encode/">
+      <time datetime="2015-01-20T05:02:34.000Z" itemprop="datePublished">2015-01-20</time>
+    </a>
+  </div>
+
+
+          
+        </div>
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+                
+        <p>#二叉树<br>根据二叉树的性质可以存在不同的编码方式</p>
+<ol>
+<li><p>完全二叉树 (Complete Binary Tree)<br>树除了最后一层，每一层的节点都是满的。按照层次遍历，输出各个节点即可。在解码时，检查层节点是否是满的。如果不是，说明是最后一层。</p>
+<blockquote>
+<p>顺道提一下，如何判断一颗树是完全二叉树呢？<br>可利用每层节点都是满的性质，采用层次遍历，将每一节点的左右孩子都存在队列中。一旦出现为空的节点，其后的所有节点也一定都是空的.</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">queue = deque(root)&#10;while queue and queue[0] not None:&#10;    node = queue.popleft()&#10;    queue.append(node.left)&#10;    queue.append(node.right)&#10;while queue and queue[-1] is None:&#10;    queue.popleft()&#10;return not queue</span><br></pre></td></tr></table></figure>
+</blockquote>
+</li>
+<li><p>二叉搜索树<br>由于二叉搜索树中序遍历的值是有序的。我们知道，对于任意二叉树，可使用中序和(前序&amp;后续)任意一种，即可完成解码。<br>从而在编码时，只需编码前序或者后续任意一种即可。<br>解码时，通过preorder首元素进行二分，递归建立树，如果预先处理next数组，复杂度为O(n)<br>代码可参考：</p>
+</li>
+<li>满二叉树(Full Tree)<br>每个节点只有0或2个孩子。采用前序遍历，并用特殊符号标记是否存在孩子即可，和后续的普通二叉树方法类似。</li>
+<li>普通二叉树<br>可以采用任意一种遍历方式(前中后)，使用 # 标记空孩子，空格’ ‘隔开各个节点。解码时，需要注意 # 标记的空孩子。<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"># use preorder travase to visit the tree&#10;# mark NULL node as #, space &#39;_&#39; to seperate each node&#10;#        5&#10;#    3      4&#10;#  1   6       7&#10;#&#10;# &#32534;&#30721;&#32467;&#26524;&#20026;: 5 3 1 # # 6 # # 4 # 7 # #&#10;def encode(node):&#10;    if not node:&#10;        return &#39;# &#39;&#10;    s = str(node.val) + &#39; &#39;&#10;    s += encode(node.left)&#10;    return s+encode(node.right)&#10;&#10;def decode(s, i):&#10;    if i[0] == len(s):&#10;        return None&#10;    space_idx = s.find(&#39; &#39;, i[0])&#10;    val = s[i[0]:space_idx]&#10;    i[0] = space_idx+1&#10;    if val == &#39;#&#39;:&#10;        return None&#10;    root = TreeNode(val)&#10;    root.left = decode(s, i)&#10;    root.right = decode(s, i)&#10;    return root</span><br></pre></td></tr></table></figure>
+</li>
+</ol>
+<p>此种方式对于空节点较少的情形较好，对于空节点较多的场景，可以进行优化。<br>使用特殊字符 ! 标记节点存在孩子， 当不存在孩子时，什么也不用做。<br>如果只存在一个孩子，另外一个孩子仍然需要使用#标记。<br>参考之前给出的树的例子，编码长度大幅减少。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"># use preorder travase to visit the tree&#10;# mark NULL node as #, space &#39;_&#39; to seperate each node&#10;# if node has childs, use !&#10;#        5&#10;#    3      4&#10;#  1   6       7&#10;#&#10;# &#32534;&#30721;&#32467;&#26524;&#20026; 5 ! 3 ! 1 6 4 ! # 7&#10;def encode2(node):&#10;    if not node:&#10;        return &#39;# &#39;&#10;    s = str(node.val) + &#39; &#39;&#10;    if node.left or node.right:&#10;        s += &#39;!&#39;&#10;        s += encode2(node.left)&#10;        s += encode2(node.right)&#10;    return s&#10;&#10;&#10;def decode2(s, i):&#10;    if i[0] == len(s):&#10;        return None&#10;    space_idx = s.find(&#39; &#39;, i[0])&#10;    val = s[i[0]:space_idx]&#10;    i[0] = space_idx+1&#10;    if val == &#39;#&#39;:&#10;        return None&#10;    root = TreeNode(val)&#10;    if i[0] &#60; len(s) and s[i[0]] == &#39;!&#39;:&#10;        i[0] += 1&#10;        root.left = decode2(s, i)&#10;        root.right = decode2(s, i)&#10;    return root</span><br></pre></td></tr></table></figure></p>
+<p>#多叉树<br>编码方式和二叉树类似，可采用前序遍历，递归创建，使用#标记子节点结束。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">def encode3(node):&#10;    if not node:&#10;        return &#34;&#34;&#10;    s = str(node.val)+&#39; &#39;&#10;    for child in node.children:&#10;        s += encode3(child)&#10;    s += &#39;#&#39;&#10;    return s&#10;&#10;&#10;def decode3(s, i):&#10;    if i[0] == len(s):&#10;        return None&#10;    space_idx = s.find(&#39; &#39;, i[0])&#10;    val = s[i[0]:space_idx]&#10;    node = MultiTree(val)&#10;    i[0] = space_idx+1&#10;    while i[0] &#60; len(s) and s[i[0]] != &#39;#&#39;:&#10;        node.children.append(decode3(s, i))&#10;    i[0] += 1  # mark&#10;    return node</span><br></pre></td></tr></table></figure></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://yoursite.com/2015/01/20/tree-encode/" data-id="cih0i58jc0008hqw4sywbfmr0" class="article-share-link">分享到</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/algorithm/">algorithm</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+    
+      <nav id="page-nav">
+        <a class="extend prev" rel="prev" href="/page/2/">&laquo; 上一页</a><a class="page-number" href="/">1</a><a class="page-number" href="/page/2/">2</a><span class="page-number current">3</span><a class="page-number" href="/page/4/">4</a><a class="extend next" rel="next" href="/page/4/">下一页 &raquo;</a>
+      </nav>
+    </section>
+      
+        <aside id="sidebar">
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">最新文章</h3>
+    <div class="widget">
+      <ul id="recent-post" class="no-thumbnail">
+        
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category"></p>
+              <p class="item-title"><a href="/2015/11/15/11tech/" class="title">缓存服务如何应对双11</a></p>
+              <p class="item-date"><time datetime="2015-11-15T11:03:44.000Z" itemprop="datePublished">2015-11-15</time></p>
+            </div>
+          </li>
+        
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category"></p>
+              <p class="item-title"><a href="/2015/09/30/git-undo/" class="title">git撤销</a></p>
+              <p class="item-date"><time datetime="2015-09-30T13:05:59.000Z" itemprop="datePublished">2015-09-30</time></p>
+            </div>
+          </li>
+        
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category"></p>
+              <p class="item-title"><a href="/2015/09/27/pytest-fixture/" class="title">pytest fixture</a></p>
+              <p class="item-date"><time datetime="2015-09-27T01:02:29.000Z" itemprop="datePublished">2015-09-27</time></p>
+            </div>
+          </li>
+        
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category"></p>
+              <p class="item-title"><a href="/2015/09/16/ssh/" class="title">ssh config</a></p>
+              <p class="item-date"><time datetime="2015-09-16T11:20:16.000Z" itemprop="datePublished">2015-09-16</time></p>
+            </div>
+          </li>
+        
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category"></p>
+              <p class="item-title"><a href="/2015/08/29/traffic-control/" class="title">云服务的流控设计</a></p>
+              <p class="item-date"><time datetime="2015-08-29T08:02:34.000Z" itemprop="datePublished">2015-08-29</time></p>
+            </div>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+    
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">标签</h3>
+    <div class="widget">
+      <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/algorithm/">algorithm</a><span class="tag-list-count">14</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/life/">life</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/system/">system</a><span class="tag-list-count">12</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tools/">tools</a><span class="tag-list-count">3</span></li></ul>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">归档</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/11/">November 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/09/">September 2015</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/08/">August 2015</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/06/">June 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/05/">May 2015</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/04/">April 2015</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/03/">March 2015</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/02/">February 2015</a><span class="archive-list-count">12</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/01/">January 2015</a><span class="archive-list-count">5</span></li></ul>
+    </div>
+  </div>
+
+  
+  <div id="toTop" class="fa fa-chevron-up"></div>
+</aside>
+      
+    </div>
+    <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      &copy; 2015 Zhe Li<br>
+      Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>. Theme by <a href="http://github.com/ppoffice">PPOffice</a>
+    </div>
+  </div>
+</footer>
+    
+
+
+
+ <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+
+
+
+
+  <link rel="stylesheet" href="/fancybox/jquery.fancybox.css" type="text/css">
+  <script src="/fancybox/jquery.fancybox.pack.js" type="text/javascript"></script>
+
+
+<script src="/js/script.js" type="text/javascript"></script>
+
+  </div>
+</body>
+</html>

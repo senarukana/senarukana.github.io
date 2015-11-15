@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>Array | Zhe Li&#39;s Blog</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="#最长连续子区间
+
+最长连续子区间定义为：对于子区间{A[i],A[i+1]…A[j]}，其值范围为{B..B+j}，且不包含重复元素。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Array">
+<meta property="og:url" content="http://yoursite.com/2015/01/20/array/index.html">
+<meta property="og:site_name" content="Zhe Li's Blog">
+<meta property="og:description" content="#最长连续子区间
+
+最长连续子区间定义为：对于子区间{A[i],A[i+1]…A[j]}，其值范围为{B..B+j}，且不包含重复元素。">
+<meta property="og:updated_time" content="2015-09-29T12:24:44.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Array">
+<meta name="twitter:description" content="#最长连续子区间
+
+最长连续子区间定义为：对于子区间{A[i],A[i+1]…A[j]}，其值范围为{B..B+j}，且不包含重复元素。">
+  
+  
+    <link rel="icon" href="favicon.png">
+  
+  
+ <link href='https://fonts.googleapis.com/css?family=Open+Sans:400italic,400,600' rel='stylesheet' type='text/css'>
+ <link href='https://fonts.googleapis.com/css?family=Source+Code+Pro' rel='stylesheet' type='text/css'>
+
+
+  <link rel="stylesheet" href="/css/style.css" type="text/css">
+  <link rel="stylesheet" href="/font-awesome/css/font-awesome.min.css" type="text/css">
+  
+
+  
+
+  
+</head>
+<body>
+  <div id="container">
+    <header id="header">
+  <div id="header-main" class="header-inner">
+    <div class="outer">
+      <a href="/" id="logo"><i class="logo" style="background-image: url(/css/images/logo.png)"></i><span class="site-title">Zhe Li&#39;s Blog</span></a>
+      <nav id="main-nav">
+        
+          <a class="main-nav-link" href="/.">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+          <a class="main-nav-link" href="/categories">Categories</a>
+        
+          <a class="main-nav-link" href="/tags">Tags</a>
+        
+      </nav>
+      
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" results="0" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit"> </button><input type="hidden" name="sitesearch" value="http://yoursite.com"></form>
+      </div>
+    </div>
+  </div>
+  <div id="main-nav-mobile" class="header-sub header-inner">
+    <table class="menu outer">
+      <tr>
+        
+          <td><a class="main-nav-link" href="/.">Home</a></td>
+        
+          <td><a class="main-nav-link" href="/archives">Archives</a></td>
+        
+          <td><a class="main-nav-link" href="/categories">Categories</a></td>
+        
+          <td><a class="main-nav-link" href="/tags">Tags</a></td>
+        
+        <td>
+          <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" results="0" class="search-form-input" placeholder="Search"><input type="hidden" name="sitesearch" value="http://yoursite.com"></form>
+        </td>
+      </tr>
+    </table>
+  </div>
+</header>
+
+    <div class="outer">
+      
+      <section id="main"><article id="post-array" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-inner">
+    
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      Array
+    </h1>
+  
+
+        <div class="article-meta">
+          
+  <div class="article-date">
+    <i class="fa fa-calendar"></i>
+    <a href="/2015/01/20/array/">
+      <time datetime="2015-01-20T05:02:34.000Z" itemprop="datePublished">2015-01-20</time>
+    </a>
+  </div>
+
+
+          
+        </div>
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+                
+        <p>#最长连续子区间</p>
+<blockquote>
+<p>最长连续子区间定义为：对于子区间{A[i],A[i+1]…A[j]}，其值范围为{B..B+j}，且不包含重复元素。<br><a id="more"></a><br>如对于数组：9 7 2 5 4 3 10 6<br>最长相邻连续子区间表示为 2 5 4 3</p>
+</blockquote>
+<ol>
+<li><p>双向扫描</p>
+<blockquote>
+<p>枚举每个点p作为区间的起点，向右进行扫描，并维护遇到的最小元素和最大元素。<br>当最大元素-最小元素的值 = cur-pos(p)时，表明此段区间连续，复杂度为O(n^2)<br>数组中最长连续子区间不要求相邻<br>如： 9 7 2 5 4 3 10 6<br>最长连续子区间为: 2 3 4 5 6 7</p>
+</blockquote>
+</li>
+<li><p>哈希<br>采用哈希存储数组，对于每一个元素，检查其相邻元素，找到最长能延伸的位置，并在此过程中删除元素<br>时间复杂度为O(n)，空间复杂度为O(n)</p>
+</li>
+</ol>
+<p>#最大完整包编号<br>维护TCP移动窗口服务端不断向客户端发送数据包，客户端不断向服务端返回收到的最大完整包的位置。</p>
+<p>输入： 3 5 2 1 6 8 4 7  表示客户端返回的包的编号<br>输出： 0 0 0 3 3 3 6 8  表示客户端返回的确认包编号</p>
+<p>思路：维护收到的最小编号，用数组保存收到的所有数据，当收到的包编号与最小编号相等时，向后进行确认，直到某个包未收到，并更新最小编号<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">def slidingWindow(a):&#10;    buffSize = 10&#10;    buff = set()&#10;    nextPacket = 1&#10;    for val in a:&#10;        if val-nextPacket &#60; buffSize:&#10;            buff.add(val)&#10;            if nextPacket == val:&#10;                while nextPacket in buff:&#10;                    buff.remove(nextPacket)&#10;                    nextPacket += 1&#10;        print nextPacket-1</span><br></pre></td></tr></table></figure></p>
+<p>#和大于k的最长子序列</p>
+<blockquote>
+<p>思想：求前缀和数组prefix,找到最大i和j，使得prefix[j] - prefix[i] &gt; k, 其中j &gt; i</p>
+</blockquote>
+<ol>
+<li>构造单调递减栈</li>
+<li>从右向左进行扫描i，当prefix[i] - 单调栈顶 &gt; k，则弹出，计算最长子序列长度</li>
+</ol>
+<p>#和小于k的最长子序列<br>数组中的数都是整数</p>
+<blockquote>
+<p>思想：维护序列的起始位置i，以及结束位置j，当sum(i, j) &gt; k时，向前移动i，直到和小于k。<br>由于全是整数，对于起点i，当sum(i, j) &gt; k时，说明sum(i, t) &gt; k, 如果 t &gt; j。从而这里找到了以i为起始的最长子序列，可以安全向前移动。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">def maxLength(a, k):&#10;    i, length, sum = 0, 0, 0&#10;    for j, val in enumerate(a):&#10;        sum += val&#10;        if sum &#60;= k:&#10;            length = max(length, j-i+1)&#10;        else:&#10;            while sum &#62; k:&#10;                sum -= a[i]&#10;                i += 1&#10;    return length</span><br></pre></td></tr></table></figure></p>
+</blockquote>
+<p>#和等于k的最长子序列</p>
+<ol>
+<li><p>数组中的数字都是正数<br>思想：维护序列的起始位置i，以及结束位置j，当sum(i, j) &gt; k时，向前移动i，直到和小于等于k。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">def maxLength(a, k):&#10;    i, length, sum = 0, 0, 0&#10;    for j, val in enumerate(a):&#10;        sum += val&#10;        while sum &#62; k:&#10;            sum -= a[i]&#10;            i += 1&#10;        if sum == k:&#10;            length = max(length, j-i+1)&#10;            i += 1&#10;            sum -= a[i]&#10;    return length</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>存在负数<br>思想：使用哈希存前缀和的值，对于每个前缀和val，检查val-k是否在前缀和集合中</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">def maxLength(a, k):&#10;    dict, length, sum = &#123;&#125;, 0, 0&#10;    dict[0] = -1&#10;    for j, val in enumerate(a):&#10;        sum += val&#10;        if (sum-k) in dict:&#10;            length = max(length, j-dict[sum-k])&#10;        if sum not in dict:&#10;            dict[sum] = j&#10;    return length</span><br></pre></td></tr></table></figure>
+</li>
+</ol>
+<p>#求序列和能被P整除的数量<br>思想：对于序列的前缀和, 如果(prefix[j] - prefix[i]) % P = 0，则说明子序列(a[i], a[i+1], …, a[j])的和能被P整除。<br>解法：</p>
+<ol>
+<li>使用哈希表保存各个前缀和出现的次数</li>
+<li>对于某个相等的前缀和的数量n，存在C(n,2)个能被P整除的序列</li>
+<li>对于前缀和为0的，还需再加上n<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">def subsequenceDivisibleByP(a, p):&#10;    n, prefix, cnt, prefixMap = len(a), 0, 0, &#123;&#125;&#10;    C = prepareC(n) #&#39044;&#22788;&#29702;C[k][2]&#10;    for i in range(n):&#10;        prefix = (prefix + a[i]) % p&#10;        if prefix not in prefixMap:&#10;            prefixMap[prefix] = 1&#10;        else:&#10;            prefixMap[prefix] += 1&#10;&#10;    for num, val in prefixMap.items():&#10;        cnt += C[val]&#10;        if num == 0:&#10;            cnt += val&#10;    return cnt</span><br></pre></td></tr></table></figure>
+</li>
+</ol>
+<p>#修改最少的数值使得数组变成有序</p>
+<blockquote>
+<p>给一个数组A，把A编程严格递增，每个数对多只能 +/- M，找到最小的M<br>输入:  1 2 4 2 3<br>输出：</p>
+</blockquote>
+<p>1.二分搜索m, 采用贪心验证，尽量使得每个数尽可能的小。<br>复杂度O(nlgn)<br>2.维护数组B[i] = A[i]-i, 找到最大diff = B[i]-B[j],其中j &gt; i，M = [diff/2]<br>时间复杂度O(n)，空间复杂度O(n)<br>有黑名单的随机数生成给定随机数生成范围，以及一个黑名单数组，数组中的数字不允许生成</p>
+<p>解法：</p>
+<ol>
+<li>维护数组a[i] = black[i]-i。</li>
+<li>生成随机数(start, end-num) 其中num表示黑名单数字的数量</li>
+<li>生成的随机数r,搜索其在数组a中的pos，返回pos+r</li>
+</ol>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://yoursite.com/2015/01/20/array/" data-id="cih0i58l6001shqw4kyvohew9" class="article-share-link">分享到</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/algorithm/">algorithm</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2015/01/20/tree-encode/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">上一篇</strong>
+      <div class="article-nav-title">
+        
+          树的编码
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2015/01/10/weedfs/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">下一篇</strong>
+      <div class="article-nav-title">WEEDFS</div>
+    </a>
+  
+</nav>
+
+
+  
+</article>
+
+
+</section>
+      
+        <aside id="sidebar">
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">最新文章</h3>
+    <div class="widget">
+      <ul id="recent-post" class="no-thumbnail">
+        
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category"></p>
+              <p class="item-title"><a href="/2015/11/15/11tech/" class="title">缓存服务如何应对双11</a></p>
+              <p class="item-date"><time datetime="2015-11-15T11:03:44.000Z" itemprop="datePublished">2015-11-15</time></p>
+            </div>
+          </li>
+        
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category"></p>
+              <p class="item-title"><a href="/2015/09/30/git-undo/" class="title">git撤销</a></p>
+              <p class="item-date"><time datetime="2015-09-30T13:05:59.000Z" itemprop="datePublished">2015-09-30</time></p>
+            </div>
+          </li>
+        
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category"></p>
+              <p class="item-title"><a href="/2015/09/27/pytest-fixture/" class="title">pytest fixture</a></p>
+              <p class="item-date"><time datetime="2015-09-27T01:02:29.000Z" itemprop="datePublished">2015-09-27</time></p>
+            </div>
+          </li>
+        
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category"></p>
+              <p class="item-title"><a href="/2015/09/16/ssh/" class="title">ssh config</a></p>
+              <p class="item-date"><time datetime="2015-09-16T11:20:16.000Z" itemprop="datePublished">2015-09-16</time></p>
+            </div>
+          </li>
+        
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category"></p>
+              <p class="item-title"><a href="/2015/08/29/traffic-control/" class="title">云服务的流控设计</a></p>
+              <p class="item-date"><time datetime="2015-08-29T08:02:34.000Z" itemprop="datePublished">2015-08-29</time></p>
+            </div>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+    
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">标签</h3>
+    <div class="widget">
+      <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/algorithm/">algorithm</a><span class="tag-list-count">14</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/life/">life</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/system/">system</a><span class="tag-list-count">12</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tools/">tools</a><span class="tag-list-count">3</span></li></ul>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">归档</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/11/">November 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/09/">September 2015</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/08/">August 2015</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/06/">June 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/05/">May 2015</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/04/">April 2015</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/03/">March 2015</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/02/">February 2015</a><span class="archive-list-count">12</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/01/">January 2015</a><span class="archive-list-count">5</span></li></ul>
+    </div>
+  </div>
+
+  
+  <div id="toTop" class="fa fa-chevron-up"></div>
+</aside>
+      
+    </div>
+    <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      &copy; 2015 Zhe Li<br>
+      Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>. Theme by <a href="http://github.com/ppoffice">PPOffice</a>
+    </div>
+  </div>
+</footer>
+    
+
+
+
+ <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+
+
+
+
+  <link rel="stylesheet" href="/fancybox/jquery.fancybox.css" type="text/css">
+  <script src="/fancybox/jquery.fancybox.pack.js" type="text/javascript"></script>
+
+
+<script src="/js/script.js" type="text/javascript"></script>
+
+  </div>
+</body>
+</html>
