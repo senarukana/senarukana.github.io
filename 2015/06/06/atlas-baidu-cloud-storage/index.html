@@ -5,53 +5,33 @@
   
   <title>Atlas: 百度云的K/V存储系统 | Zhe Li&#39;s Blog</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-  <meta name="description" content="#系统的挑战
+  <meta name="description" content="百度最近在MSST 2015发布的一篇介绍百度云使用的K/V存储系统Atlas的论文，详细介绍了系统的设计理念和思路，内容丰富，干货很多，有兴趣的务必读一下论文。本文简要介绍一下系统的设计，抛砖引玉。
+系统的特点百度云盘为每个用户提供了2T的使用空间，在这些数据的特点有以下
 
-硬件利用率大部分cpu利用率低，采用arm 2g内存，4核1.9的CPU，6T磁盘
-节省资源由于热点数据已经由CDN，为了使得2g内存要管理6T硬盘，将文件的索引和文件存储分离。
-使用LSM-TreeCompaction影响LSM-Tree的性能，特别是当value普遍比较大时，将很大影响系统性能。
-
-#设计要点
-
-针对小文件94%文件小于128k
-高可用性
-高写入性能
-强一致性">
+百度云94%的文件在[128KB-256KB]之间，所以atlas主要针对小文件存储
+百度云前面有CDN，到达atlas的">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Atlas: 百度云的K/V存储系统">
 <meta property="og:url" content="http://yoursite.com/2015/06/06/atlas-baidu-cloud-storage/index.html">
 <meta property="og:site_name" content="Zhe Li's Blog">
-<meta property="og:description" content="#系统的挑战
+<meta property="og:description" content="百度最近在MSST 2015发布的一篇介绍百度云使用的K/V存储系统Atlas的论文，详细介绍了系统的设计理念和思路，内容丰富，干货很多，有兴趣的务必读一下论文。本文简要介绍一下系统的设计，抛砖引玉。
+系统的特点百度云盘为每个用户提供了2T的使用空间，在这些数据的特点有以下
 
-硬件利用率大部分cpu利用率低，采用arm 2g内存，4核1.9的CPU，6T磁盘
-节省资源由于热点数据已经由CDN，为了使得2g内存要管理6T硬盘，将文件的索引和文件存储分离。
-使用LSM-TreeCompaction影响LSM-Tree的性能，特别是当value普遍比较大时，将很大影响系统性能。
-
-#设计要点
-
-针对小文件94%文件小于128k
-高可用性
-高写入性能
-强一致性">
+百度云94%的文件在[128KB-256KB]之间，所以atlas主要针对小文件存储
+百度云前面有CDN，到达atlas的">
+<meta property="og:image" content="http://yoursite.com/image/atlas_interface.png">
 <meta property="og:image" content="http://yoursite.com/image/atlas_architecture.png">
 <meta property="og:image" content="http://yoursite.com/image/atlas_pis.png">
 <meta property="og:image" content="http://yoursite.com/image/atlas_write.png">
 <meta property="og:image" content="http://yoursite.com/image/atlas_read.png">
-<meta property="og:updated_time" content="2015-09-29T12:24:44.000Z">
+<meta property="og:updated_time" content="2015-11-25T16:14:54.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Atlas: 百度云的K/V存储系统">
-<meta name="twitter:description" content="#系统的挑战
+<meta name="twitter:description" content="百度最近在MSST 2015发布的一篇介绍百度云使用的K/V存储系统Atlas的论文，详细介绍了系统的设计理念和思路，内容丰富，干货很多，有兴趣的务必读一下论文。本文简要介绍一下系统的设计，抛砖引玉。
+系统的特点百度云盘为每个用户提供了2T的使用空间，在这些数据的特点有以下
 
-硬件利用率大部分cpu利用率低，采用arm 2g内存，4核1.9的CPU，6T磁盘
-节省资源由于热点数据已经由CDN，为了使得2g内存要管理6T硬盘，将文件的索引和文件存储分离。
-使用LSM-TreeCompaction影响LSM-Tree的性能，特别是当value普遍比较大时，将很大影响系统性能。
-
-#设计要点
-
-针对小文件94%文件小于128k
-高可用性
-高写入性能
-强一致性">
+百度云94%的文件在[128KB-256KB]之间，所以atlas主要针对小文件存储
+百度云前面有CDN，到达atlas的">
   
   
     <link rel="icon" href="favicon.png">
@@ -144,29 +124,22 @@
     <div class="article-entry" itemprop="articleBody">
       
                 
-        <p>#系统的挑战</p>
-<ol>
-<li>硬件利用率<br>大部分cpu利用率低，采用arm 2g内存，4核1.9的CPU，6T磁盘</li>
-<li>节省资源<br>由于热点数据已经由CDN，为了使得2g内存要管理6T硬盘，将文件的索引和文件存储分离。</li>
-<li>使用LSM-Tree<br>Compaction影响LSM-Tree的性能，特别是当value普遍比较大时，将很大影响系统性能。</li>
-</ol>
-<p>#设计要点</p>
-<ol>
-<li>针对小文件<br>94%文件小于128k</li>
-<li>高可用性</li>
-<li>高写入性能</li>
-<li>强一致性</li>
-<li>低成本</li>
-</ol>
-<p>#架构<br><img src="/image/atlas_architecture.png" alt="Architecture"><br>系统分为两层，上层PIS(Patch and Index)，负责文件到文件块的映射和临时数据的写入。<br>下层RBS(Raid-like Block System)用来实际存储数据。<br>用户在使用时，首先访问PIS的元数据服务器，获取PIS的路由表。接着通过文件名进行hash，在路由表中找到对应的PIS服务器，向其发出请求。</p>
-<p>#PIS系统<br>PIS是系统的入口，它提供基于文件的三个接口Put, Get, Delete。同时负责存储文件到文件块的索引，和临时数据块。<br>在设计上，它采用中心化设计，分为Master节点和数据节点。由Master负责管理全局PIS的存活情况和系统路由，数据节点负责存储索引文件。<br><img src="/image/atlas_pis.png" alt="PIS"><br>上图为PIS模块图，为了保证数据的强一致性，用户请求到达PIS时，它将首先生成该文件对应的ID，接着经由复制模块，将此文件复制到两个从节点。<br>当复制完成后，PIS将数据写入临时的Block中。每个Block最大为64MB。<br>接着在Index中，记录此文件ID在临时Block的位置的偏移和文件长度<br>一旦Block超过64MB，将会对该文件进行打包不再修改，并经由RBSClient传给RBS。</p>
+        <p>百度最近在MSST 2015发布的一篇介绍百度云使用的K/V存储系统Atlas的<a href="http://www.ece.eng.wayne.edu/~sjiang/pubs/papers/lai15-atlas.pdf" target="_blank" rel="external">论文</a>，详细介绍了系统的设计理念和思路，内容丰富，干货很多，有兴趣的务必读一下论文。本文简要介绍一下系统的设计，抛砖引玉。</p>
+<h1 id="系统的特点">系统的特点</h1><p>百度云盘为每个用户提供了2T的使用空间，在这些数据的特点有以下</p>
+<ul>
+<li>百度云94%的文件在[128KB-256KB]之间，所以atlas主要针对小文件存储</li>
+<li>百度云前面有CDN，到达atlas的请求基本都是随机访问，atlas是随机访问的存储引擎，不支持range操作</li>
+</ul>
+<h1 id="架构">架构</h1><p>对外系统暴露三个简单的接口：<br><img src="/image/atlas_interface.png" alt="API"></p>
+<p><img src="/image/atlas_architecture.png" alt="Architecture"><br>在设计上系统分为两层，上层PIS(Patch and Index)，负责文件到文件块的映射和临时数据的写入。<br>下层RBS(Raid-like Block System)用来实际存储数据。<br>用户在使用时，首先访问PIS的元数据服务器，获取PIS的路由表。接着通过文件名进行hash，在路由表中找到对应的PIS服务器，向其发出请求。</p>
+<h2 id="PIS系统">PIS系统</h2><p>PIS是系统的入口，它提供基于文件的三个接口Put, Get, Delete。同时负责存储文件到文件块的索引，和临时数据块。<br>在设计上，它采用中心化设计，分为Master节点和数据节点。由Master负责管理全局PIS的存活情况和系统路由，数据节点负责存储索引文件。<br><img src="/image/atlas_pis.png" alt="PIS"><br>上图为PIS模块图，为了保证数据的强一致性，用户请求到达PIS时，它将首先生成该文件对应的ID，接着经由复制模块，将此文件复制到两个从节点。<br>当复制完成后，PIS将数据写入临时的Block中。每个Block最大为64MB。<br>接着在Index中，记录此文件ID在临时Block的位置的偏移和文件长度<br>一旦Block超过64MB，将会对该文件进行打包不再修改，并经由RBSClient传给RBS。</p>
 <p>Index采用定长形式存储，引擎采用LevelDB。<br>它的每个Key是128位全局独立ID。Value是由三元组成(BlockId, Offset, Length)。分别对应文件块ID，块上的偏移和文件的大小。<br>由于每条记录都很小，LevelDB在执行Compaction操作的代价也较小。</p>
-<p>#RBS系统<br>RBS负责文件块的存储，它提供文件块的写入，删除和指定文件块偏移和长度的读取。<br>它同样采用中心化设计，中央节点维护RBS节点存活情况和文件块到RBS的映射，以及数据迁移和灾难恢复。</p>
-<p>为了保证系统的高可用性和存储，采用Erasure Code编码，Erasure Code之前广泛使用在RAID系统中，算法要求每次需要提供4个大小相同的块，并为其两个新的块。从而保证对于6个文件块，任意丢失两个及以下的块系统的数据仍然能恢复。<br>在将64MB文件快写入RBS中时，会事先划分成8个8MB的文件，编码后形成新的4个8MB文件，存在12个RBS数据节点中。<br>为了方便寻找这12个文件，此前生成的BlockedId最后4位会是0，再此处将分别填上从1-12的ID。<br>RBS客户端发出写入请求时，会首先通过中心节点，询问可以写入文件块的服务器地址，接着直接对数据节点发出写入请求，写入成功后通知RBS中心服务器。<br>为了防止部分节点出现故障影响文件块的写入，在写入12个文件之前，RBS客户端会首先向RBS中央节点请求15个IP，当有节点失败时，尝试下一个。<br><a id="more"></a> </p>
-<p>##数据的写入<br><img src="/image/atlas_write.png" alt="数据的写入"><br>上图为数据的写入流程，Atlas客户端首先计算文件名对应的哈希值，从而找到对应PIS数据块。接着写入PIS的临时Patch文件块。<br>当写满后转由RBS进行处理，它首先进行分块后，存储在多个RBS数据节点中。</p>
-<p>##数据的读取<br><img src="/image/atlas_read.png" alt="数据的读取"><br>上图为数据的读取流程，同写入一样，也首先需要计算哈希值，找到对应PIS数据块。<br>PIS将首先检查该文件是否在Patch文件块中，如果在则立即返回。<br>否则通过索引文件，找到对应的Block块，向RBS发出读取请求。</p>
-<p>##删除数据的回收<br>RBS不提供数据删除的接口，每个文件块一旦形成不得修改。Atlas的删除是离线的，它首先只修改PIS上的索引，标记其位删除。<br>在后台利用MapReduce框架定时离线扫描PIS索引块，运算得到文件块的使用容量，从中找出使用量不足设定值的文件块，默认为80%。<br>找到指定的文件块后，将有用数据重新发送请求到Atlas系统中，并删除原有文件块。</p>
-<p>#总结<br>Atlas采用双层架构将文件索引和文件块的存储隔离，上层PIS负责文件到文件块的索引，下层采用RBS负责大文件块的存储。<br>上述架构能更好的分配系统资源，PIS采用大内存磁盘容量较小的机器，RBS则可采用性能低CPU，小内存大存储的系统，采用arm存储增加了机架存储密度。<br>同时索引和数据的分离，使得Levledb在做Compaction时损失较小，后端数据的负载均衡，迁移也更容易。</p>
+<h2 id="RBS系统">RBS系统</h2><p>RBS负责文件块的存储，它提供文件块的写入，删除和指定文件块偏移和长度的读取。<br>它同样采用中心化设计，中央节点维护RBS节点存活情况和文件块到RBS的映射，以及数据迁移和灾难恢复。</p>
+<p>为了保证系统的高可用性和存储，采用Erasure Code编码，Erasure Code之前广泛使用在RAID系统中，算法要求每次需要提供4个大小相同的块，并为其两个新的块。从而保证对于6个文件块，任意丢失两个及以下的块系统的数据仍然能恢复。<br>在将64MB文件快写入RBS中时，会事先划分成8个8MB的文件，编码后形成新的4个8MB文件，存在12个RBS数据节点中。<br>为了方便寻找这12个文件，此前生成的BlockedId最后4位会是0，再此处将分别填上从1-12的ID。<br>RBS客户端发出写入请求时，会首先通过中心节点，询问可以写入文件块的服务器地址，接着直接对数据节点发出写入请求，写入成功后通知RBS中心服务器。<br>为了防止部分节点出现故障影响文件块的写入，在写入12个文件之前，RBS客户端会首先向RBS中央节点请求15个IP，当有节点失败时，尝试下一个。<br><a id="more"></a></p>
+<h2 id="数据的读取流程">数据的读取流程</h2><h3 id="数据的写入">数据的写入</h3><p><img src="/image/atlas_write.png" alt="数据的写入"><br>上图为数据的写入流程，Atlas客户端首先计算文件名对应的哈希值，从而找到对应PIS数据块。接着写入PIS的临时Patch文件块。<br>当写满后转由RBS进行处理，它首先进行分块后，存储在多个RBS数据节点中。</p>
+<h3 id="数据的读取">数据的读取</h3><p><img src="/image/atlas_read.png" alt="数据的读取"><br>上图为数据的读取流程，同写入一样，也首先需要计算哈希值，找到对应PIS数据块。<br>PIS将首先检查该文件是否在Patch文件块中，如果在则立即返回。<br>否则通过索引文件，找到对应的Block块，向RBS发出读取请求。</p>
+<h3 id="删除数据的回收">删除数据的回收</h3><p>RBS不提供数据删除的接口，每个文件块一旦形成不得修改。Atlas的删除是离线的，它首先只修改PIS上的索引，标记其位删除。<br>在后台利用MapReduce框架定时离线扫描PIS索引块，运算得到文件块的使用容量，从中找出使用量不足设定值的文件块，默认为80%。<br>找到指定的文件块后，将有用数据重新发送请求到Atlas系统中，并删除原有文件块。</p>
+<h1 id="总结">总结</h1><p>Atlas采用双层架构将文件索引和文件块的存储隔离，上层PIS负责文件到文件块的索引，下层采用RBS负责大文件块的存储。<br>上述架构能更好的分配系统资源，PIS采用大内存磁盘容量较小的机器，RBS则可采用性能低CPU，小内存大存储的系统，采用arm存储增加了机架存储密度。<br>同时索引和数据的分离，使得Levledb在做Compaction时损失较小，后端数据的负载均衡，迁移也更容易。</p>
 <p>相比淘宝的TFS系统<a href="http://code.taobao.org/p/tfs/wiki/intro/" target="_blank" rel="external">介绍</a>采用单层架构，它具有很大的优势。</p>
 <ol>
 <li>由于TFS数据块内文件索引也存在于数据节点中，为了保证效率，需要确保这些索引在内存中。但是由于块中存储文件大小不一，索引块所需的空间也不一致，难于对机器所需的内存进行评估。</li>
@@ -194,7 +167,7 @@
       <strong class="article-nav-caption">上一篇</strong>
       <div class="article-nav-title">
         
-          一次Proxy宕机引起的服务不可用
+          从一次Proxy宕机引起的服务不可用说起
         
       </div>
     </a>

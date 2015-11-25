@@ -107,7 +107,7 @@
     <div class="article-entry" itemprop="articleBody">
       
         <p>每年一度的双11已经过完，相比往年不同今年有幸参加了双11全过程。我所在的缓存团队承担着双11很重要的职责，负责存储商品库存、全站用户Session、购物车等峰值QPS上千万级别的大业务。值得骄傲的是，团队的服务除了在0点时极短时间内对购物车和无线业务实施了限流，整个过程异常稳定。<br>关于如何架构亿万级别QPS系统或者秒杀系统，之前在网络上已经讨论的很多，主要涉及负载均衡、CDN、缓存、静态化、降级、限流、数据压缩等。但那些讨论往往面太广，趁着现在双11余韵还在，本篇文章将站在我们的键值存储服务Tair系统的角度来阐述，我们是如何应对双11的。</p>
-<h1 id="技术">技术</h1><p>对于双11这种大型促销，相比平时有超过10倍的流量压力，对于服务器将产生很大的压力和造成各种问题。体现在我们的缓存业务，主要涉及到两个，流量突增问题和热点Key问题。<br>
+<h1 id="技术">技术</h1><p>对于双11这种大型促销，相比平时有超过10倍的流量压力，对于服务器将产生很大的压力和造成各种问题。体现在我们的缓存业务，主要涉及到两个，流量突增问题，热点Key问题。<br>
         
           <p class="article-more-link">
             <a href="/2015/11/15/11tech/#more">Read More</a>
@@ -402,7 +402,7 @@
         
   
     <h1 itemprop="name">
-      <a class="article-title" href="/2015/08/12/proxy-bug/">一次Proxy宕机引起的服务不可用</a>
+      <a class="article-title" href="/2015/08/12/proxy-bug/">从一次Proxy宕机引起的服务不可用说起</a>
     </h1>
   
 
@@ -476,24 +476,17 @@
     
     <div class="article-entry" itemprop="articleBody">
       
-        <p>#系统的挑战</p>
-<ol>
-<li>硬件利用率<br>大部分cpu利用率低，采用arm 2g内存，4核1.9的CPU，6T磁盘</li>
-<li>节省资源<br>由于热点数据已经由CDN，为了使得2g内存要管理6T硬盘，将文件的索引和文件存储分离。</li>
-<li>使用LSM-Tree<br>Compaction影响LSM-Tree的性能，特别是当value普遍比较大时，将很大影响系统性能。</li>
-</ol>
-<p>#设计要点</p>
-<ol>
-<li>针对小文件<br>94%文件小于128k</li>
-<li>高可用性</li>
-<li>高写入性能</li>
-<li>强一致性</li>
-<li>低成本</li>
-</ol>
-<p>#架构<br><img src="/image/atlas_architecture.png" alt="Architecture"><br>系统分为两层，上层PIS(Patch and Index)，负责文件到文件块的映射和临时数据的写入。<br>下层RBS(Raid-like Block System)用来实际存储数据。<br>用户在使用时，首先访问PIS的元数据服务器，获取PIS的路由表。接着通过文件名进行hash，在路由表中找到对应的PIS服务器，向其发出请求。</p>
-<p>#PIS系统<br>PIS是系统的入口，它提供基于文件的三个接口Put, Get, Delete。同时负责存储文件到文件块的索引，和临时数据块。<br>在设计上，它采用中心化设计，分为Master节点和数据节点。由Master负责管理全局PIS的存活情况和系统路由，数据节点负责存储索引文件。<br><img src="/image/atlas_pis.png" alt="PIS"><br>上图为PIS模块图，为了保证数据的强一致性，用户请求到达PIS时，它将首先生成该文件对应的ID，接着经由复制模块，将此文件复制到两个从节点。<br>当复制完成后，PIS将数据写入临时的Block中。每个Block最大为64MB。<br>接着在Index中，记录此文件ID在临时Block的位置的偏移和文件长度<br>一旦Block超过64MB，将会对该文件进行打包不再修改，并经由RBSClient传给RBS。</p>
+        <p>百度最近在MSST 2015发布的一篇介绍百度云使用的K/V存储系统Atlas的<a href="http://www.ece.eng.wayne.edu/~sjiang/pubs/papers/lai15-atlas.pdf">论文</a>，详细介绍了系统的设计理念和思路，内容丰富，干货很多，有兴趣的务必读一下论文。本文简要介绍一下系统的设计，抛砖引玉。</p>
+<h1 id="系统的特点">系统的特点</h1><p>百度云盘为每个用户提供了2T的使用空间，在这些数据的特点有以下</p>
+<ul>
+<li>百度云94%的文件在[128KB-256KB]之间，所以atlas主要针对小文件存储</li>
+<li>百度云前面有CDN，到达atlas的请求基本都是随机访问，atlas是随机访问的存储引擎，不支持range操作</li>
+</ul>
+<h1 id="架构">架构</h1><p>对外系统暴露三个简单的接口：<br><img src="/image/atlas_interface.png" alt="API"></p>
+<p><img src="/image/atlas_architecture.png" alt="Architecture"><br>在设计上系统分为两层，上层PIS(Patch and Index)，负责文件到文件块的映射和临时数据的写入。<br>下层RBS(Raid-like Block System)用来实际存储数据。<br>用户在使用时，首先访问PIS的元数据服务器，获取PIS的路由表。接着通过文件名进行hash，在路由表中找到对应的PIS服务器，向其发出请求。</p>
+<h2 id="PIS系统">PIS系统</h2><p>PIS是系统的入口，它提供基于文件的三个接口Put, Get, Delete。同时负责存储文件到文件块的索引，和临时数据块。<br>在设计上，它采用中心化设计，分为Master节点和数据节点。由Master负责管理全局PIS的存活情况和系统路由，数据节点负责存储索引文件。<br><img src="/image/atlas_pis.png" alt="PIS"><br>上图为PIS模块图，为了保证数据的强一致性，用户请求到达PIS时，它将首先生成该文件对应的ID，接着经由复制模块，将此文件复制到两个从节点。<br>当复制完成后，PIS将数据写入临时的Block中。每个Block最大为64MB。<br>接着在Index中，记录此文件ID在临时Block的位置的偏移和文件长度<br>一旦Block超过64MB，将会对该文件进行打包不再修改，并经由RBSClient传给RBS。</p>
 <p>Index采用定长形式存储，引擎采用LevelDB。<br>它的每个Key是128位全局独立ID。Value是由三元组成(BlockId, Offset, Length)。分别对应文件块ID，块上的偏移和文件的大小。<br>由于每条记录都很小，LevelDB在执行Compaction操作的代价也较小。</p>
-<p>#RBS系统<br>RBS负责文件块的存储，它提供文件块的写入，删除和指定文件块偏移和长度的读取。<br>它同样采用中心化设计，中央节点维护RBS节点存活情况和文件块到RBS的映射，以及数据迁移和灾难恢复。</p>
+<h2 id="RBS系统">RBS系统</h2><p>RBS负责文件块的存储，它提供文件块的写入，删除和指定文件块偏移和长度的读取。<br>它同样采用中心化设计，中央节点维护RBS节点存活情况和文件块到RBS的映射，以及数据迁移和灾难恢复。</p>
 <p>为了保证系统的高可用性和存储，采用Erasure Code编码，Erasure Code之前广泛使用在RAID系统中，算法要求每次需要提供4个大小相同的块，并为其两个新的块。从而保证对于6个文件块，任意丢失两个及以下的块系统的数据仍然能恢复。<br>在将64MB文件快写入RBS中时，会事先划分成8个8MB的文件，编码后形成新的4个8MB文件，存在12个RBS数据节点中。<br>为了方便寻找这12个文件，此前生成的BlockedId最后4位会是0，再此处将分别填上从1-12的ID。<br>RBS客户端发出写入请求时，会首先通过中心节点，询问可以写入文件块的服务器地址，接着直接对数据节点发出写入请求，写入成功后通知RBS中心服务器。<br>为了防止部分节点出现故障影响文件块的写入，在写入12个文件之前，RBS客户端会首先向RBS中央节点请求15个IP，当有节点失败时，尝试下一个。<br>
         
           <p class="article-more-link">
@@ -546,7 +539,7 @@
     <div class="article-entry" itemprop="articleBody">
       
         <p>在海量数据，高并发时代的今天，单机由于其CPU，磁盘IO，网络带宽以及存储空间等原因，已经不再能及时响应用户的所有请求，系统都开始走向分布式，由多台机器组件成一个集群响应用户请求。具体到分布式存储系统，一个很重要的问题就在于数据的同步。本文将简要介绍当前较为流行的数据同步方案，简要分析其原理和利弊，希望能起到一个抛砖引玉的作用。</p>
-<p>##数据同步初步<br>数据同步的基本思想很简单，就是将单台机器上的用户数据和请求，通过<em>复制Replicate</em>的方式复制用户的操作命令到多台机器执行。从而应对当某台机器出现<a href="https://aphyr.com/posts/288-the-network-is-reliable">故障</a>时，数据仍能存其他机器获取。<br>一种最朴素的实现方式是采用多台机器构成集群存储数据，机器按照职责分为一个主节点和多个从节点。其中主节点负责接收用户的数据请求，在本地执行用户请求的同时，将数据复制到集群中其他从节点。<br><img src="/image/replicate_base.png" alt="同步复制"><br>上图中描述了同步复制的基本流程。<br>
+<h1 id="数据同步初步">数据同步初步</h1><p>数据同步的基本思想很简单，就是将单台机器上的用户数据和请求，通过<em>复制Replicate</em>的方式复制用户的操作命令到多台机器执行。从而应对当某台机器出现<a href="https://aphyr.com/posts/288-the-network-is-reliable">故障</a>时，数据仍能存其他机器获取。<br>一种最朴素的实现方式是采用多台机器构成集群存储数据，机器按照职责分为一个主节点和多个从节点。其中主节点负责接收用户的数据请求，在本地执行用户请求的同时，将数据复制到集群中其他从节点。<br><img src="/image/replicate_base.png" alt="同步复制"><br>上图中描述了同步复制的基本流程。<br>
         
           <p class="article-more-link">
             <a href="/2015/05/30/replication/#more">Read More</a>
@@ -597,20 +590,42 @@
     
     <div class="article-entry" itemprop="articleBody">
       
-        <p>##简介<br>在分布式系统中，一个经典的问题是如何高效、可靠的保证运行集群中各个节点数据保持一致。Paxos算法是解决该问题中最广为人知的算法，它由Lamport提出，但由于其描述的较为晦涩，同时存在多处省略，在实现过程中往往有很多细节难于处理，在工程中存在许多类似而又不统一的实现。ZooKeeper使用的Zab算法实际上和Paxos存在很多地方的不同。Raft算法是由Stanford教授提出为了帮助学生理解的同步算法，它和Paxos算法类似，同样能保证集群数据的强一致性，但同时又便于理解。集群中的交互和状态少许多。</p>
-<p>##目标<br>在讲述Raft算法之前，我们首先讨论算法需要达成的目标。它包括以下四个方面：</p>
+        <h1 id="简介">简介</h1><p>在分布式系统中，一个经典的问题是如何高效、可靠的保证运行集群中各个节点数据保持一致。Paxos算法是解决该问题中最广为人知的算法，它由Lamport提出，但由于其描述的较为晦涩，同时存在多处省略，在实现过程中往往有很多细节难于处理，在工程中存在许多类似而又不统一的实现。ZooKeeper使用的Zab算法实际上和Paxos存在很多地方的不同。Raft算法是由Stanford教授提出为了帮助学生理解的同步算法，它和Paxos算法类似，同样能保证集群数据的强一致性，但同时又便于理解。集群中的交互和状态少许多。</p>
+<h1 id="目标">目标</h1><p>在讲述Raft算法之前，我们首先讨论一致性算法的要求，它包括以下四个方面：</p>
 <ol>
-<li>集群需要能够承受各种类型的错误。</li>
+<li>算法需要能够承受各种类型的错误。</li>
 <li>一半以上的节点能运行集群能够正常运作</li>
 <li>每个操作只要一半以上的节点成功执行就算成功</li>
 <li>不能依赖于任何外部时序</li>
 </ol>
-<p>##基本概念</p>
-<p>###架构<br><img src="/image/raft_architecture.png" alt="架构"><br>集群以状态复制机(Replicated State Machine)的方式，对外提供服务。<br>任何时候集群中只有一个主节点，负责接收所有用户请求，并将用户的数据复制给其他节点。</p>
-<p>###节点状态<br>节点有三种状态，分别为: Leader, Follower, Candidate</p>
-<p>####Leader<br>在任何时刻，集群只有一个Leader<br>Leader负责接收所有用户请求，如何Follower接收到将把请求转发到Leader</p>
-<p>####Follower<br>Follower被动的方式运行，只负责响应请求，而不主动发出请求。<br>节点在启动之初状态都为Follower</p>
-<p>####Candidate<br>当Follower长期未收到Leader的请求时，将变成Candidate状态，开始新一轮的集群选举。<br>节点的转换图:<br><img src="/image/raft_state_change.png" alt="同步复制"><br>
+<h1 id="实现">实现</h1><p>Raft协议基于复制状态机（replicated state machine），即一组server从相同的初始状态起，按相同的顺序执行相同的命令，最终会达到一直的状态，如下图所示，一组server记录相同的操作日志，并以相同的顺序应用到状态机。</p>
+<p>它将一致性问题进行分解为“集群选举”和“复制日志”两个部分。 集群选举过程是为了从集群中会选出唯一的leader负责服务客户端的请求。而复制日志过程，是为了保证所有server的状态和最终达到跟leader一致。</p>
+<h2 id="集群选举">集群选举</h2><h3 id="集群节点类型">集群节点类型</h3><p>集群中节点有三种类型，分别为: Leader, Follower, Candidate。 在初始时，大家都为Follower。通过选举产生集群的Leader。</p>
+<ul>
+<li><p>在任何时刻，集群只有一个Leader。Leader负责接收所有用户请求，并通过”复制日志”方式同步给Follower。</p>
+</li>
+<li><p>Follower以被动的方式运行，只负责响应请求，而不主动发出请求。</p>
+</li>
+<li><p>Candidate状态是集群选举开始后，希望变成Leader节点的临时状态。</p>
+</li>
+</ul>
+<h3 id="集群选举过程">集群选举过程</h3><p>Leader定时向Follower发送心跳信息，当某个Follower长期未接受到Leader的心跳信息，Follower将发动新一轮的Leader选举，这时它会做两件事情。</p>
+<ol>
+<li>Follower变换其状态为Candidate</li>
+<li>将当前的Term+1，发起投票请求。</li>
+</ol>
+<p>对于每一轮选举(对应一个Term)，每个节点只能投一次票。 节点收到投票请求后，将比较请求中的Term与自身的Term。此时有三种情况：</p>
+<ol>
+<li>请求的Term与当前Term相同<br>节点此轮还未投过票，此时将返回同意请求。<br>节点此轮已经投过票，不做回应</li>
+<li>请求的Term大于当前Term<br>表明节点已经落后，更新节点的Term，返回voteGranted = True</li>
+<li>请求的Term小于当前Term<br>不做回应</li>
+</ol>
+<h4 id="Candidate对于投票的反馈">Candidate对于投票的反馈</h4><ol>
+<li>当前节点被选为新的Leader<br>当节点收到超过一半节点的投票，确定其是新的Leader。此时将状态更新为Leader，发送新一轮心跳请求，告知其他节点Leader已经产生。</li>
+<li>收到来自Leader的数据写入请求，且term &gt;= 当前节点的term<br>更新Term为请求反馈的Term，变更状态为Follower</li>
+<li>投票超时仍没有收到超过一半的确认<br>递增Term，等待一段时间，开始新一轮的选举</li>
+</ol>
+<p><img src="/image/raft_election.png" alt="集群选举后系统状态"></p>
         
           <p class="article-more-link">
             <a href="/2015/05/22/raft/#more">Read More</a>
@@ -661,15 +676,9 @@
     
     <div class="article-entry" itemprop="articleBody">
       
-        <p>#简介<br><a href="nsq.io">nsq</a>是一个由go编写的简单，高效消息队列，它的最大特点是无第三方依赖和配置简单易于使用。</p>
-<p>#基本概念<br>和传统消息队列一样，它分为两种角色，生产者和消费者。生产者发布消息到指定的话题Topic中。消费者通过管道Channel来订阅话题中数据。每个话题通常被多个管道绑定。多个消费者绑定同样的管道在正常情况下只会接收一份数据。                              </p>
-<pre><code>                                                    / metrics-consumer1
-                                channel<span class="string">[metrics]</span>   -  metrics-consumer2
-                            /    
-producer -&gt; topic<span class="string">[clicks]</span>   -   channel<span class="string">[spam_analyzer]</span> - spam-consumer
-                            \   channel<span class="string">[archive]</span>   -  archive-consumer
-                                                    \ archive-consumer2
-</code></pre><p>系统由三个子系统构成：控制服务器， 数据服务器和管理服务器。<br>
+        <h1 id="简介">简介</h1><p><a href="nsq.io">nsq</a>是一个由go编写的简单，高效消息队列，它的最大特点是无第三方依赖和配置简单易于使用。</p>
+<h1 id="概要">概要</h1><p>和传统消息队列一样，它分为两种角色，生产者和消费者。生产者发布消息到指定的话题Topic中。消费者通过管道Channel来订阅话题中数据。每个话题通常被多个管道绑定。多个消费者绑定同样的管道在正常情况下只会接收一份数据。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">                                                    / metrics-consumer1&#10;                                channel[metrics]   -  metrics-consumer2&#10;                            /&#10;producer -&#62; topic[clicks]   -   channel[spam_analyzer] - spam-consumer&#10;                            \   channel[archive]   -  archive-consumer&#10;                                                    \ archive-consumer2</span><br></pre></td></tr></table></figure></p>
+<p>系统由三个子系统构成：控制服务器nsqlookupd， 数据服务器nsqd 和 管理服务器nsqadmin。<br>
         
           <p class="article-more-link">
             <a href="/2015/05/18/nsq/#more">Read More</a>

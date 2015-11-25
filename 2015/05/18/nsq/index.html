@@ -5,19 +5,19 @@
   
   <title>nsq | Zhe Li&#39;s Blog</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-  <meta name="description" content="#简介nsq是一个由go编写的简单，高效消息队列，它的最大特点是无第三方依赖和配置简单易于使用。
-#基本概念和传统消息队列一样，它分为两种角色，生产者和消费者。生产者发布消息到指定的话题Topic中。消费者通过管道Channel来订阅话题中数据。每个话题通常被多个管道绑定。多个消费者绑定同样的管道在正常情况下只会接收一份数据。">
+  <meta name="description" content="简介nsq是一个由go编写的简单，高效消息队列，它的最大特点是无第三方依赖和配置简单易于使用。
+概要和传统消息队列一样，它分为两种角色，生产者和消费者。生产者发布消息到指定的话题Topic中。消费者通过管道Channel来订阅话题中数据。每个话题通常被多个管道绑定。多个消费者绑定同样的管道在正常情况下只会接收一份数据。1">
 <meta property="og:type" content="article">
 <meta property="og:title" content="nsq">
 <meta property="og:url" content="http://yoursite.com/2015/05/18/nsq/index.html">
 <meta property="og:site_name" content="Zhe Li's Blog">
-<meta property="og:description" content="#简介nsq是一个由go编写的简单，高效消息队列，它的最大特点是无第三方依赖和配置简单易于使用。
-#基本概念和传统消息队列一样，它分为两种角色，生产者和消费者。生产者发布消息到指定的话题Topic中。消费者通过管道Channel来订阅话题中数据。每个话题通常被多个管道绑定。多个消费者绑定同样的管道在正常情况下只会接收一份数据。">
-<meta property="og:updated_time" content="2015-09-29T12:24:44.000Z">
+<meta property="og:description" content="简介nsq是一个由go编写的简单，高效消息队列，它的最大特点是无第三方依赖和配置简单易于使用。
+概要和传统消息队列一样，它分为两种角色，生产者和消费者。生产者发布消息到指定的话题Topic中。消费者通过管道Channel来订阅话题中数据。每个话题通常被多个管道绑定。多个消费者绑定同样的管道在正常情况下只会接收一份数据。1">
+<meta property="og:updated_time" content="2015-11-25T16:56:03.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="nsq">
-<meta name="twitter:description" content="#简介nsq是一个由go编写的简单，高效消息队列，它的最大特点是无第三方依赖和配置简单易于使用。
-#基本概念和传统消息队列一样，它分为两种角色，生产者和消费者。生产者发布消息到指定的话题Topic中。消费者通过管道Channel来订阅话题中数据。每个话题通常被多个管道绑定。多个消费者绑定同样的管道在正常情况下只会接收一份数据。">
+<meta name="twitter:description" content="简介nsq是一个由go编写的简单，高效消息队列，它的最大特点是无第三方依赖和配置简单易于使用。
+概要和传统消息队列一样，它分为两种角色，生产者和消费者。生产者发布消息到指定的话题Topic中。消费者通过管道Channel来订阅话题中数据。每个话题通常被多个管道绑定。多个消费者绑定同样的管道在正常情况下只会接收一份数据。1">
   
   
     <link rel="icon" href="favicon.png">
@@ -110,19 +110,18 @@
     <div class="article-entry" itemprop="articleBody">
       
                 
-        <p>#简介<br><a href="nsq.io">nsq</a>是一个由go编写的简单，高效消息队列，它的最大特点是无第三方依赖和配置简单易于使用。</p>
-<p>#基本概念<br>和传统消息队列一样，它分为两种角色，生产者和消费者。生产者发布消息到指定的话题Topic中。消费者通过管道Channel来订阅话题中数据。每个话题通常被多个管道绑定。多个消费者绑定同样的管道在正常情况下只会接收一份数据。                              </p>
-<pre><code>                                                    / metrics-consumer1
-                                channel<span class="string">[metrics]</span>   -  metrics-consumer2
-                            /    
-producer -&gt; topic<span class="string">[clicks]</span>   -   channel<span class="string">[spam_analyzer]</span> - spam-consumer
-                            \   channel<span class="string">[archive]</span>   -  archive-consumer
-                                                    \ archive-consumer2
-</code></pre><p>系统由三个子系统构成：控制服务器， 数据服务器和管理服务器。<br><a id="more"></a> </p>
-<p>##控制服务器lookupd<br>控制服务器维护集群的拓扑信息和nsqd节点运行状态。<br>拓扑信息包括nsqd节点信息，topic与节点的映射以及topic与channel的映射。<br>nsqd节点在整个运行过程中将与控制服务器发送心跳信息，控制服务器负责维护nsqd节点的存活状态。<br>客户端在发布和订阅管道时都将通过控制服务器获取对应的nsqd节点地址，接着发出请求。<br>控制服务器解耦了用户与后端服务器之间的联系。为了保证控制服务器的可靠性，需要启动多个控制服务器。各个控制服务器之间，彼此之间不存在交互。</p>
-<p>##数据服务器nsqd<br>它为每一个管道channel维护一个数据队列，它提供内存队列和磁盘队列。用户可以指定每一个管道最多在内存中存储多少条数据。<br>和控制服务器一样它也是无状态的。</p>
-<p>##管理服务器<br>提供ui界面显示系统的状态查看。</p>
-<p>#总结<br>nsq旨在提供简单、高效的消息队列，系统的同类节点之间不存在交互，大大方便了运维，系统中任意几个节点失效，系统都将能保持运行。<br>它将数据均匀的分摊到各个nsqd节点之中，不存在任何形式的数据复制或者写多份策略，系统不保证数据的安全性，事实上当任意节点出现不可恢复性宕机都将导致数据的丢失。<br>它不保证消息处理的时序性，提供最少消费一次的原语。<br>对于那些对性能要求较高，容许丢失数据的场景（如用户行为和日志）将是一个易用的解决方案</p>
+        <h1 id="简介">简介</h1><p><a href="nsq.io">nsq</a>是一个由go编写的简单，高效消息队列，它的最大特点是无第三方依赖和配置简单易于使用。</p>
+<h1 id="概要">概要</h1><p>和传统消息队列一样，它分为两种角色，生产者和消费者。生产者发布消息到指定的话题Topic中。消费者通过管道Channel来订阅话题中数据。每个话题通常被多个管道绑定。多个消费者绑定同样的管道在正常情况下只会接收一份数据。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">                                                    / metrics-consumer1&#10;                                channel[metrics]   -  metrics-consumer2&#10;                            /&#10;producer -&#62; topic[clicks]   -   channel[spam_analyzer] - spam-consumer&#10;                            \   channel[archive]   -  archive-consumer&#10;                                                    \ archive-consumer2</span><br></pre></td></tr></table></figure></p>
+<p>系统由三个子系统构成：控制服务器nsqlookupd， 数据服务器nsqd 和 管理服务器nsqadmin。<br><a id="more"></a></p>
+<h2 id="数据服务器nsqd">数据服务器nsqd</h2><p>它为每一个管道channel维护一个数据队列，它提供内存队列和磁盘队列。用户可以指定每一个管道最多在内存中存储多少条数据<br>NSQ也有临时channel的概念。临时channel会丢弃溢出的消息（而不是写入到磁盘），当没有客户订阅后它就会消失。型。一般的 topics和channels使用DiskQueue，而临时channel则使用了实现Backend接口的DummyBackendQueue。</p>
+<h2 id="控制服务器lookupd">控制服务器lookupd</h2><p>控制服务器维护集群的拓扑信息和nsqd节点运行状态。<br>拓扑信息包括nsqd节点信息，topic与节点的映射以及topic与channel的映射。<br>nsqd节点在整个运行过程中将与控制服务器发送心跳信息，控制服务器负责维护nsqd节点的存活状态。<br>客户端在发布和订阅管道时都将通过控制服务器获取对应的nsqd节点地址，接着发出请求。<br>控制服务器解耦了用户与后端服务器之间的联系。</p>
+<h2 id="管理服务器">管理服务器</h2><p>提供ui界面显示系统的状态查看。</p>
+<h2 id="可用性">可用性</h2><p>无论是数据服务器还是控制服务器它们都是无状态的，且彼此之间不交互。</p>
+<ul>
+<li>对于控制服务器来说，它的高可用依赖于同时启动多个节点。</li>
+<li>对于数据服务器来说，它的高可用是依赖于控制服务器来做到的。如果一个节点出现故障，控制服务器在发现该问题后将更新nsqd的路由信息，新的用户将不再连接到出现故障的服务器中。但需要注意的是服务器故障，将意味着数据丢失</li>
+</ul>
+<h1 id="总结">总结</h1><p>nsq旨在提供简单、高效的消息队列，系统的同类节点之间不存在交互，大大方便了运维，系统中任意几个节点失效，系统都将能保持运行。<br>它将数据均匀的分摊到各个nsqd节点之中，不存在任何形式的数据复制或者写多份策略，系统不保证数据的安全性，事实上当任意节点出现不可恢复性宕机都将导致数据的丢失。<br>它不保证消息处理的时序性，提供最少消费一次的原语。<br>对于那些对性能要求较高，容许丢失数据的场景（如用户行为和日志）将是一个易用的解决方案</p>
 
       
     </div>

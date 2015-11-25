@@ -311,8 +311,9 @@
     
     <div class="article-entry" itemprop="articleBody">
       
-        <p>#基本概念</p>
-<ol>
+        <p>Apache Kafka是一个由Java开发的分布式发布-订阅消息系统，它最初由LinkedIn公司开发，之后成为Apache项目的一部分。Kafka是一种快速、可扩展的、设计内在就是分布式的，分区的和可复制的提交日志服务。</p>
+<p>Apache Kafka具有良好的扩展性和极高的性能，灵活的订阅数据方式使得它已经成为海量消息处理的标杆。</p>
+<h1 id="基本概念">基本概念</h1><ol>
 <li>数据的切分<br>对于每一个topic的数据，将分成多个数据块存储在系统集群中。<br>分块采用主/从的方式保证数据的可靠性。同一时间只有主节点负责用户接收请求，从节点只被动的同步数据。</li>
 <li>生产者<br>生产者可以根据自己需求将消息发送给指定的topic对应的指定分块，也可随机选择一个分块。</li>
 <li>消费者<br>Kafka最大的特点是保证消费者处理消息的强时序性。它严格限制了，同一时间一个分块最多只有一个消费者。<br>同时也对使用者提出了两个要求：</li>
@@ -419,15 +420,18 @@
     
     <div class="article-entry" itemprop="articleBody">
       
-        <p>#需求</p>
+        <p>Tinyurl最初由Twitter提出，其目的是为了减少推文中的字数限制。其后相继被广泛应用于社交网络之中，并在该原始功能的基础上加入了安全、数据统计等功能。由于其被广大用户熟知，且是一个典型的分布式系统方案它成为一个面试中常见的设计题。本文抛砖引玉，站在twitter系统的角度分析一下该系统的实现。</p>
+<h1 id="接口">接口</h1><p>设计系统之前让我们来首先看看TinyUrl系统的功能</p>
 <ol>
 <li>给定长url 生成短url。</li>
 <li>输入短url返回原始长url。</li>
+<li>url的安全访问控制</li>
+<li>url的点击统计。<br>5…</li>
 </ol>
-<p>#分析</p>
-<p>##并发<br>考虑twitter活跃用户1亿，每天发表2贴，1/10有链接，那么每天有2000万个url<br>写并发量为：20,000,000 / 24 / 60/ 60 = 300<br>考虑巅峰20倍，tps为6000，很小。<br>读写比例10：1，qps = 60000，相对较高，考虑到未来扩展需要多个节点。</p>
-<p>##容量<br>考虑采用哈希表存储映射关系，短url 64字节，长url256字节，考虑哈希表的开销是本省的两倍,存储两年之内的url映射<br>(64+256)B <em> 20,000,000</em>365*2 = 5TB<br>数据规模较大，内存存不下，考虑存储时采用基于K/V的永久化存储。</p>
-<p>#系统原型<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">      client&#10;        |&#10;      proxy&#10;  /     |    \&#10;node1  node2  node3</span><br></pre></td></tr></table></figure></p>
+<p>其中1，2是系统要解决的关键。</p>
+<h1 id="分析">分析</h1><h2 id="并发">并发</h2><p>让我们考虑twitter当前的场景，它包含活跃用户1亿，每天发表2贴，1/10有链接，那么每天有2000万个url<br>写并发量为：20,000,000 / 24 / 60/ 60 = 300<br>考虑巅峰20倍，tps为6000，很小。<br>读写比例10：1，qps = 60000，相对较高，考虑到未来扩展需要多个节点。</p>
+<h2 id="容量">容量</h2><p>考虑采用哈希表存储映射关系，短url 64字节，长url256字节，考虑哈希表的开销是本省的两倍,存储两年之内的url映射<br>(64+256)B <em> 20,000,000</em>365*2 = 5TB<br>数据规模较大，内存存不下，考虑存储时采用基于K/V的永久化存储。</p>
+<h1 id="系统原型">系统原型</h1><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">      client&#10;        |&#10;      proxy&#10;  /     |    \&#10;node1  node2  node3</span><br></pre></td></tr></table></figure>
         
           <p class="article-more-link">
             <a href="/2015/02/21/tinyurl/#more">Read More</a>
@@ -604,11 +608,13 @@
     
     <div class="article-entry" itemprop="articleBody">
       
-        <p>#需求<br>是用来收集什么日志？ =&gt; 收集手机app的crush记录<br>收集日志的目的? =&gt; 分析crush的原因 =&gt; 最好需要上层的查询分析接口<br>日志的存储时间?永久还是有期限? =&gt; 两年 or 永久?为了估算空间</p>
-<p>##数据特点</p>
-<ol>
+        <p>logsystem是一道最近在facebook面试中经常遇到的问题，本文抛砖引玉，介绍我关于该问题的思考。</p>
+<h1 id="需求">需求</h1><p>是用来收集什么日志？ =&gt; 收集手机app的crush记录<br>收集日志的目的? =&gt; 分析crush的原因 =&gt; 最好需要上层的查询分析接口<br>日志的存储时间?永久还是有期限? =&gt; 两年 or 永久?为了估算空间</p>
+<h2 id="数据特点">数据特点</h2><ol>
 <li>Crush收集的记录可能经常会发生变化<br>时间 模块 错误信息 栈信息等</li>
-<li>写明显大于读<br>##潜在的需求</li>
+<li>写明显大于读</li>
+</ol>
+<h2 id="潜在的需求">潜在的需求</h2><ol>
 <li>数据安全性</li>
 <li>日志的汇总</li>
 <li>查询接口</li>

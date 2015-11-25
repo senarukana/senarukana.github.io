@@ -5,28 +5,25 @@
   
   <title>kafka | Zhe Li&#39;s Blog</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-  <meta name="description" content="#基本概念
-
-数据的切分对于每一个topic的数据，将分成多个数据块存储在系统集群中。分块采用主/从的方式保证数据的可靠性。同一时间只有主节点负责用户接收请求，从节点只被动的同步数据。
-生产者生产者可以根据自己需求将消息发送给指定的topic对应的指定分块，也可随机选择一个分块。
-消费者Kafka最大的特点是保证消费者处理消息的强时序性。它严格限制了，同一时间一个分块最多只有一个消费者。同时也对使">
+  <meta name="description" content="Apache Kafka是一个由Java开发的分布式发布-订阅消息系统，它最初由LinkedIn公司开发，之后成为Apache项目的一部分。Kafka是一种快速、可扩展的、设计内在就是分布式的，分区的和可复制的提交日志服务。
+Apache Kafka具有良好的扩展性和极高的性能，灵活的订阅数据方式使得它已经成为海量消息处理的标杆。
+基本概念
+数据的切分对于每一个topic的数据，将分成多个数据块存">
 <meta property="og:type" content="article">
 <meta property="og:title" content="kafka">
 <meta property="og:url" content="http://yoursite.com/2015/03/01/kafka/index.html">
 <meta property="og:site_name" content="Zhe Li's Blog">
-<meta property="og:description" content="#基本概念
-
-数据的切分对于每一个topic的数据，将分成多个数据块存储在系统集群中。分块采用主/从的方式保证数据的可靠性。同一时间只有主节点负责用户接收请求，从节点只被动的同步数据。
-生产者生产者可以根据自己需求将消息发送给指定的topic对应的指定分块，也可随机选择一个分块。
-消费者Kafka最大的特点是保证消费者处理消息的强时序性。它严格限制了，同一时间一个分块最多只有一个消费者。同时也对使">
-<meta property="og:updated_time" content="2015-09-29T12:24:44.000Z">
+<meta property="og:description" content="Apache Kafka是一个由Java开发的分布式发布-订阅消息系统，它最初由LinkedIn公司开发，之后成为Apache项目的一部分。Kafka是一种快速、可扩展的、设计内在就是分布式的，分区的和可复制的提交日志服务。
+Apache Kafka具有良好的扩展性和极高的性能，灵活的订阅数据方式使得它已经成为海量消息处理的标杆。
+基本概念
+数据的切分对于每一个topic的数据，将分成多个数据块存">
+<meta property="og:updated_time" content="2015-11-25T17:02:14.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="kafka">
-<meta name="twitter:description" content="#基本概念
-
-数据的切分对于每一个topic的数据，将分成多个数据块存储在系统集群中。分块采用主/从的方式保证数据的可靠性。同一时间只有主节点负责用户接收请求，从节点只被动的同步数据。
-生产者生产者可以根据自己需求将消息发送给指定的topic对应的指定分块，也可随机选择一个分块。
-消费者Kafka最大的特点是保证消费者处理消息的强时序性。它严格限制了，同一时间一个分块最多只有一个消费者。同时也对使">
+<meta name="twitter:description" content="Apache Kafka是一个由Java开发的分布式发布-订阅消息系统，它最初由LinkedIn公司开发，之后成为Apache项目的一部分。Kafka是一种快速、可扩展的、设计内在就是分布式的，分区的和可复制的提交日志服务。
+Apache Kafka具有良好的扩展性和极高的性能，灵活的订阅数据方式使得它已经成为海量消息处理的标杆。
+基本概念
+数据的切分对于每一个topic的数据，将分成多个数据块存">
   
   
     <link rel="icon" href="favicon.png">
@@ -119,21 +116,26 @@
     <div class="article-entry" itemprop="articleBody">
       
                 
-        <p>#基本概念</p>
-<ol>
+        <p>Apache Kafka是一个由Java开发的分布式发布-订阅消息系统，它最初由LinkedIn公司开发，之后成为Apache项目的一部分。Kafka是一种快速、可扩展的、设计内在就是分布式的，分区的和可复制的提交日志服务。</p>
+<p>Apache Kafka具有良好的扩展性和极高的性能，灵活的订阅数据方式使得它已经成为海量消息处理的标杆。</p>
+<h1 id="基本概念">基本概念</h1><ol>
 <li>数据的切分<br>对于每一个topic的数据，将分成多个数据块存储在系统集群中。<br>分块采用主/从的方式保证数据的可靠性。同一时间只有主节点负责用户接收请求，从节点只被动的同步数据。</li>
 <li>生产者<br>生产者可以根据自己需求将消息发送给指定的topic对应的指定分块，也可随机选择一个分块。</li>
 <li>消费者<br>Kafka最大的特点是保证消费者处理消息的强时序性。它严格限制了，同一时间一个分块最多只有一个消费者。<br>同时也对使用者提出了两个要求：</li>
 <li>为了保证系统的并发，需在启动之初，选择好每个topic的分块数量。</li>
-<li>对于需要保证时序的多个操作，生产者需要指定同样的分块。<a id="more"></a> 
-<h1 id="实现要点">实现要点</h1><h2 id="数据写入">数据写入</h2></li>
+<li>对于需要保证时序的多个操作，生产者需要指定同样的分块。<a id="more"></a>
+</li>
+</ol>
+<h1 id="实现要点">实现要点</h1><h2 id="数据写入">数据写入</h2><ul>
 <li>每个topic分块实际上对应的就是linux上的一个文件。</li>
 <li>采用批量Append方式，不支持数据修改和删除。牺牲用户的响应时间，追求系统性能。</li>
-<li>采用sendfile命令，直接将用户的数据写到指定文件中，避免从用户态到内核态数据复制的损失。<h2 id="数据读取">数据读取</h2></li>
+<li>采用sendfile命令，直接将用户的数据写到指定文件中，避免从用户态到内核态数据复制的损失。</li>
+</ul>
+<h2 id="数据读取">数据读取</h2><ul>
 <li>系统不使用任何Cache，全部交由操作系统处理，</li>
 <li>读取数据时，消费者需提供数据的offset。<br>后端保存消费者处理到的offset在元数据中。</li>
 <li>消费者消费完数据后，数据不会删除。</li>
-</ol>
+</ul>
 <p>许多消息队列采用客户ACK方式，确保用户某条消息已经正确被消费，同时删除此条数据，但这带来了两个问题。</p>
 <ol>
 <li>消息可能被消费多次。<br>考虑一种情形，当消费者处理完某条消息后，发送ACK确认期间宕机。当客户再次启动时，由于服务器没有收到消息的确认信息，消息将被重新消费。</li>
@@ -144,11 +146,11 @@
 <li>减少了元数据信息。<br>后端只需保存每个用户消费到的offset。使得客户端与服务器端沟通代价更小。服务器端定期保存offset数据即可。</li>
 <li>消息可以重读<br>当用户出现BUG时，允许用户回退读取过期数据。这对于用户遇到问题时是个很大帮助。</li>
 </ol>
-<p>##网络的优化</p>
-<ol>
+<h2 id="网络的优化">网络的优化</h2><ol>
 <li>基于binary的通讯协议。<br>降低Producer，Broker和Consumer之间因为小数据包带来的性能损失。</li>
-<li>批量发送数据 &amp; 对数据进行压缩。<br>开发者发现对于很多场景，系统的性能瓶颈在于网络带宽。<br>Kafka在后端向消费者发送数据时，采用批量策略。并只对大数据，进行数据进行压缩。消费者在收到数据后，将针对压缩数据进行解压，返回给上层用户的只是未压缩数据。<br>详细资料在此[<a href="https://cwiki.apache.org/confluence/display/KAFKA/Compression" target="_blank" rel="external">https://cwiki.apache.org/confluence/display/KAFKA/Compression</a>]<br>##数据的推-拉模型<br>系统的数据处理方式是推拉结合，生产者发送数据到后端，消费者从后端拉取数据。<br>Scribe和Flume采用拉推模式。上游将发送的数据存在本地，后端定期从上游端数据中获取文件，并且向下游发送数据。<br>对于上游的拉方式，其优点在于上游客户操作延迟低。但是存在数据丢失的风险。同时对于有大量的上游用户场景不太适用。<br>对于下游的推方式，其优点在于后端可以性能最大化，有效的平衡CPU，磁盘IO和网络带宽。但缺点在于后端数据发送的速率可能过快，超过了下游数据处理能力。<br>考虑到kafka对用户发送数据的可靠性要求和可能存在的大量生产者，最后选择了推-拉模型。</li>
+<li>批量发送数据 &amp; 对数据进行压缩。<br>开发者发现对于很多场景，系统的性能瓶颈在于网络带宽。<br>Kafka在后端向消费者发送数据时，采用批量策略。并只对大数据，进行数据进行压缩。消费者在收到数据后，将针对压缩数据进行解压，返回给上层用户的只是未压缩数据。<br>详细资料在此[<a href="https://cwiki.apache.org/confluence/display/KAFKA/Compression" target="_blank" rel="external">https://cwiki.apache.org/confluence/display/KAFKA/Compression</a>]</li>
 </ol>
+<h2 id="数据的推-拉模型">数据的推-拉模型</h2><p>系统的数据处理方式是推拉结合，生产者发送数据到后端，消费者从后端拉取数据。<br>Scribe和Flume采用拉推模式。上游将发送的数据存在本地，后端定期从上游端数据中获取文件，并且向下游发送数据。<br>对于上游的拉方式，其优点在于上游客户操作延迟低。但是存在数据丢失的风险。同时对于有大量的上游用户场景不太适用。<br>对于下游的推方式，其优点在于后端可以性能最大化，有效的平衡CPU，磁盘IO和网络带宽。但缺点在于后端数据发送的速率可能过快，超过了下游数据处理能力。<br>考虑到kafka对用户发送数据的可靠性要求和可能存在的大量生产者，最后选择了推-拉模型。</p>
 <h2 id="消息消费原语">消息消费原语</h2><p>消息队列一般存在三种消息消费原语，它包括：</p>
 <ol>
 <li>最多消费一次：消息最多被消费者处理一次</li>

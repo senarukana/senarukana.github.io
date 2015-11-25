@@ -5,23 +5,21 @@
   
   <title>raft | Zhe Li&#39;s Blog</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-  <meta name="description" content="##简介在分布式系统中，一个经典的问题是如何高效、可靠的保证运行集群中各个节点数据保持一致。Paxos算法是解决该问题中最广为人知的算法，它由Lamport提出，但由于其描述的较为晦涩，同时存在多处省略，在实现过程中往往有很多细节难于处理，在工程中存在许多类似而又不统一的实现。ZooKeeper使用的Zab算法实际上和Paxos存在很多地方的不同。Raft算法是由Stanford教授提出为了帮助学">
+  <meta name="description" content="简介在分布式系统中，一个经典的问题是如何高效、可靠的保证运行集群中各个节点数据保持一致。Paxos算法是解决该问题中最广为人知的算法，它由Lamport提出，但由于其描述的较为晦涩，同时存在多处省略，在实现过程中往往有很多细节难于处理，在工程中存在许多类似而又不统一的实现。ZooKeeper使用的Zab算法实际上和Paxos存在很多地方的不同。Raft算法是由Stanford教授提出为了帮助学生理">
 <meta property="og:type" content="article">
 <meta property="og:title" content="raft">
 <meta property="og:url" content="http://yoursite.com/2015/05/22/raft/index.html">
 <meta property="og:site_name" content="Zhe Li's Blog">
-<meta property="og:description" content="##简介在分布式系统中，一个经典的问题是如何高效、可靠的保证运行集群中各个节点数据保持一致。Paxos算法是解决该问题中最广为人知的算法，它由Lamport提出，但由于其描述的较为晦涩，同时存在多处省略，在实现过程中往往有很多细节难于处理，在工程中存在许多类似而又不统一的实现。ZooKeeper使用的Zab算法实际上和Paxos存在很多地方的不同。Raft算法是由Stanford教授提出为了帮助学">
-<meta property="og:image" content="http://yoursite.com/image/raft_architecture.png">
-<meta property="og:image" content="http://yoursite.com/image/raft_state_change.png">
-<meta property="og:image" content="http://yoursite.com/image/raft_data_structure.png">
+<meta property="og:description" content="简介在分布式系统中，一个经典的问题是如何高效、可靠的保证运行集群中各个节点数据保持一致。Paxos算法是解决该问题中最广为人知的算法，它由Lamport提出，但由于其描述的较为晦涩，同时存在多处省略，在实现过程中往往有很多细节难于处理，在工程中存在许多类似而又不统一的实现。ZooKeeper使用的Zab算法实际上和Paxos存在很多地方的不同。Raft算法是由Stanford教授提出为了帮助学生理">
 <meta property="og:image" content="http://yoursite.com/image/raft_election.png">
+<meta property="og:image" content="http://yoursite.com/image/raft_data_structure.png">
 <meta property="og:image" content="http://yoursite.com/image/raft_log_append.png">
 <meta property="og:image" content="http://yoursite.com/image/raft_split_brain.png">
 <meta property="og:image" content="http://yoursite.com/image/raft_config_change.png">
-<meta property="og:updated_time" content="2015-09-29T12:24:44.000Z">
+<meta property="og:updated_time" content="2015-11-25T16:42:41.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="raft">
-<meta name="twitter:description" content="##简介在分布式系统中，一个经典的问题是如何高效、可靠的保证运行集群中各个节点数据保持一致。Paxos算法是解决该问题中最广为人知的算法，它由Lamport提出，但由于其描述的较为晦涩，同时存在多处省略，在实现过程中往往有很多细节难于处理，在工程中存在许多类似而又不统一的实现。ZooKeeper使用的Zab算法实际上和Paxos存在很多地方的不同。Raft算法是由Stanford教授提出为了帮助学">
+<meta name="twitter:description" content="简介在分布式系统中，一个经典的问题是如何高效、可靠的保证运行集群中各个节点数据保持一致。Paxos算法是解决该问题中最广为人知的算法，它由Lamport提出，但由于其描述的较为晦涩，同时存在多处省略，在实现过程中往往有很多细节难于处理，在工程中存在许多类似而又不统一的实现。ZooKeeper使用的Zab算法实际上和Paxos存在很多地方的不同。Raft算法是由Stanford教授提出为了帮助学生理">
   
   
     <link rel="icon" href="favicon.png">
@@ -114,45 +112,51 @@
     <div class="article-entry" itemprop="articleBody">
       
                 
-        <p>##简介<br>在分布式系统中，一个经典的问题是如何高效、可靠的保证运行集群中各个节点数据保持一致。Paxos算法是解决该问题中最广为人知的算法，它由Lamport提出，但由于其描述的较为晦涩，同时存在多处省略，在实现过程中往往有很多细节难于处理，在工程中存在许多类似而又不统一的实现。ZooKeeper使用的Zab算法实际上和Paxos存在很多地方的不同。Raft算法是由Stanford教授提出为了帮助学生理解的同步算法，它和Paxos算法类似，同样能保证集群数据的强一致性，但同时又便于理解。集群中的交互和状态少许多。</p>
-<p>##目标<br>在讲述Raft算法之前，我们首先讨论算法需要达成的目标。它包括以下四个方面：</p>
+        <h1 id="简介">简介</h1><p>在分布式系统中，一个经典的问题是如何高效、可靠的保证运行集群中各个节点数据保持一致。Paxos算法是解决该问题中最广为人知的算法，它由Lamport提出，但由于其描述的较为晦涩，同时存在多处省略，在实现过程中往往有很多细节难于处理，在工程中存在许多类似而又不统一的实现。ZooKeeper使用的Zab算法实际上和Paxos存在很多地方的不同。Raft算法是由Stanford教授提出为了帮助学生理解的同步算法，它和Paxos算法类似，同样能保证集群数据的强一致性，但同时又便于理解。集群中的交互和状态少许多。</p>
+<h1 id="目标">目标</h1><p>在讲述Raft算法之前，我们首先讨论一致性算法的要求，它包括以下四个方面：</p>
 <ol>
-<li>集群需要能够承受各种类型的错误。</li>
+<li>算法需要能够承受各种类型的错误。</li>
 <li>一半以上的节点能运行集群能够正常运作</li>
 <li>每个操作只要一半以上的节点成功执行就算成功</li>
 <li>不能依赖于任何外部时序</li>
 </ol>
-<p>##基本概念</p>
-<p>###架构<br><img src="/image/raft_architecture.png" alt="架构"><br>集群以状态复制机(Replicated State Machine)的方式，对外提供服务。<br>任何时候集群中只有一个主节点，负责接收所有用户请求，并将用户的数据复制给其他节点。</p>
-<p>###节点状态<br>节点有三种状态，分别为: Leader, Follower, Candidate</p>
-<p>####Leader<br>在任何时刻，集群只有一个Leader<br>Leader负责接收所有用户请求，如何Follower接收到将把请求转发到Leader</p>
-<p>####Follower<br>Follower被动的方式运行，只负责响应请求，而不主动发出请求。<br>节点在启动之初状态都为Follower</p>
-<p>####Candidate<br>当Follower长期未收到Leader的请求时，将变成Candidate状态，开始新一轮的集群选举。<br>节点的转换图:<br><img src="/image/raft_state_change.png" alt="同步复制"><br><a id="more"></a> </p>
-<p>###数据记录<br>对于每个用户插入请求，系统将以记录的形式进行存储，其形式如下图。<br><img src="/image/raft_data_structure.png" alt="数据记录"></p>
-<p>每个记录分为三个部分：</p>
-<blockquote>
-<p>Term-RecordId-UserData</p>
-</blockquote>
-<p>Term是系统的逻辑时间，每一次集群选举都将产生新的逻辑时间。每个节点都将维护Term值，系统可使用它隔离过期无效的数据和Leader，详细可参考后文集群选举过程。<br>RecordId是自增长的。每插入一条记录，id+1。当产生新的逻辑时间后，RecordId归0</p>
-<p>##集群选举<br>Leader定时向Follower发送心跳信息，当某个Follower长期未接受到Leader的心跳信息，Follower将发动新一轮的Leader选举。过程如下：</p>
+<h1 id="实现">实现</h1><p>Raft协议基于复制状态机（replicated state machine），即一组server从相同的初始状态起，按相同的顺序执行相同的命令，最终会达到一直的状态，如下图所示，一组server记录相同的操作日志，并以相同的顺序应用到状态机。</p>
+<p>它将一致性问题进行分解为“集群选举”和“复制日志”两个部分。 集群选举过程是为了从集群中会选出唯一的leader负责服务客户端的请求。而复制日志过程，是为了保证所有server的状态和最终达到跟leader一致。</p>
+<h2 id="集群选举">集群选举</h2><h3 id="集群节点类型">集群节点类型</h3><p>集群中节点有三种类型，分别为: Leader, Follower, Candidate。 在初始时，大家都为Follower。通过选举产生集群的Leader。</p>
+<ul>
+<li><p>在任何时刻，集群只有一个Leader。Leader负责接收所有用户请求，并通过”复制日志”方式同步给Follower。</p>
+</li>
+<li><p>Follower以被动的方式运行，只负责响应请求，而不主动发出请求。</p>
+</li>
+<li><p>Candidate状态是集群选举开始后，希望变成Leader节点的临时状态。</p>
+</li>
+</ul>
+<h3 id="集群选举过程">集群选举过程</h3><p>Leader定时向Follower发送心跳信息，当某个Follower长期未接受到Leader的心跳信息，Follower将发动新一轮的Leader选举，这时它会做两件事情。</p>
 <ol>
 <li>Follower变换其状态为Candidate</li>
 <li>将当前的Term+1，发起投票请求。</li>
 </ol>
-<p>###投票<br>对于每一轮选举(对应一个Term)，每个节点只能投一次票<br>节点收到投票请求后，将比较请求中的Term与自身的Term。此时有三种情况：</p>
+<p>对于每一轮选举(对应一个Term)，每个节点只能投一次票。 节点收到投票请求后，将比较请求中的Term与自身的Term。此时有三种情况：</p>
 <ol>
 <li>请求的Term与当前Term相同<br>节点此轮还未投过票，此时将返回同意请求。<br>节点此轮已经投过票，不做回应</li>
 <li>请求的Term大于当前Term<br>表明节点已经落后，更新节点的Term，返回voteGranted = True</li>
 <li>请求的Term小于当前Term<br>不做回应</li>
 </ol>
-<p>###Candidate对于投票的反馈</p>
-<ol>
+<h4 id="Candidate对于投票的反馈">Candidate对于投票的反馈</h4><ol>
 <li>当前节点被选为新的Leader<br>当节点收到超过一半节点的投票，确定其是新的Leader。此时将状态更新为Leader，发送新一轮心跳请求，告知其他节点Leader已经产生。</li>
 <li>收到来自Leader的数据写入请求，且term &gt;= 当前节点的term<br>更新Term为请求反馈的Term，变更状态为Follower</li>
 <li>投票超时仍没有收到超过一半的确认<br>递增Term，等待一段时间，开始新一轮的选举</li>
 </ol>
 <p><img src="/image/raft_election.png" alt="集群选举后系统状态"></p>
-<p>##数据的插入<br><img src="/image/raft_log_append.png" alt="数据的存储"><br>上图为，集群中数据的可能存储状态。在执行数据插入时，流程如下：</p>
+<a id="more"></a>
+<h2 id="数据同步">数据同步</h2><p>Leader收到用户请求后，会将用户请求写入操作日志中的同时，将数据复制给其他节点，当收到满足条件的反馈后，标记写入成功，返回结果给用户。</p>
+<p>对于每个用户插入请求，系统将以记录的形式进行存储，其形式如下图。<br><img src="/image/raft_data_structure.png" alt="数据记录"></p>
+<p>每个记录分为三个部分：</p>
+<blockquote>
+<p>Term-RecordId-UserData</p>
+</blockquote>
+<p>Term是系统的逻辑时间，每一次集群选举都将产生新的逻辑时间。每个节点都将维护Term值，系统可使用它隔离过期无效的数据和Leader，详细可参考后文集群选举过程。<br>RecordId是自增长的。每插入一条记录，id+1。当产生新的逻辑时间后，RecordId归0</p>
+<p><img src="/image/raft_log_append.png" alt="数据的存储"><br>上图为，集群中数据的可能存储状态。在执行数据插入时，流程如下：</p>
 <ol>
 <li>用户发送数据给Leader</li>
 <li>Leader写入记录到本地</li>
@@ -160,33 +164,29 @@
 <li>当超过一半以上的Follower返回成功，Leader标示该记录Commited，返回成功给用户</li>
 <li>Leader告知所有Follower记录Commmited， Follower收到后，标示记录Commited。<br>如果4,5过程中当Follower未能及时响应, Leader将不断重试</li>
 </ol>
-<p>###记录Commited<br>当记录一旦被标示为Commited，系统将保证如下两个事实：</p>
+<h3 id="记录Commited">记录Commited</h3><p>当记录一旦被标示为Commited，系统将保证如下两个事实：</p>
 <ol>
 <li>对于今后所有时刻，所有节点在该位置将保存同样的记录。</li>
 <li>在此记录之前的所有记录已经同步完成</li>
 </ol>
 <p>有了以上两个性质，一旦数据Commited之后，系统将保证至少有一半以上的节点和Leader有着同样的Commited数据。</p>
-<p>###Follower接收记录请求<br>为了保证Commited性质，Follower接收到插入记录请求时，将检查该条记录之前的所有记录是否已经Commited，如果不是，将拒绝该请求，并返回待同步数据的起始位置。</p>
-<p>##详细设计</p>
-<p>###插入请求接口</p>
-<blockquote>
+<h3 id="Follower接收记录请求">Follower接收记录请求</h3><p>为了保证Commited性质，Follower接收到插入记录请求时，将检查该条记录之前的所有记录是否已经Commited，如果不是，将拒绝该请求，并返回待同步数据的起始位置。</p>
+<h2 id="详细设计">详细设计</h2><h3 id="插入请求接口">插入请求接口</h3><blockquote>
 <p>AppendEntries(term, leaderID, prevLogIndex, prevLogTerm, entries[], commitedIndex) -&gt; (term, sucess)</p>
 </blockquote>
 <p>prevLogIndex和prevLogTerm用于告知Follower其最后提交的记录<br>当prevLogIndex和term小于Follower时，表明此Leader已经过期，存在新的Leader，Follower将拒绝该请求，Old Leader收到该请求后变换其状态为Follower。<br>CommitedIndex用于告知Follower此次请求记录的提交Index。</p>
-<p>###投票请求接口</p>
-<blockquote>
+<h3 id="投票请求接口">投票请求接口</h3><blockquote>
 <p>RequestVote(candidateId, term, lastLogIndex, lastLogTerm) -&gt; (term, voteGranted)</p>
 </blockquote>
 <p>节点将会检查当前Term，与log的信息。<br>log信息是为了保证拥有最新记录的节点才能选成Leader。<br>当节点的log记录大于投票请求提供的，节点将无视投票请求</p>
-<p>###节点保存的状态<br>currentTerm 标记当前所处阶段<br>voteFor 当前阶段投票的LeaderId，如果未投则为空<br>log[] 日志记录信息</p>
-<p>##客户端</p>
-<p>###超时重试机制<br>客户端发送请求给Leader，如果请求超过指定时间没有返回，发送请求给集群中任意一个其它节点，并更新Leader。</p>
-<p>###避免重复提交<br>当Leader已经提交了记录后，在返回给用户结果之前Crash了，此时用户将认为记录插入失败，会进行重试。这将会导致记录重复提交。<br>为了避免这个问题，</p>
+<h3 id="节点保存的状态">节点保存的状态</h3><p>currentTerm 标记当前所处阶段<br>voteFor 当前阶段投票的LeaderId，如果未投则为空<br>log[] 日志记录信息</p>
+<h2 id="客户端">客户端</h2><h3 id="超时重试机制">超时重试机制</h3><p>客户端发送请求给Leader，如果请求超过指定时间没有返回，发送请求给集群中任意一个其它节点，并更新Leader。</p>
+<h3 id="避免重复提交">避免重复提交</h3><p>当Leader已经提交了记录后，在返回给用户结果之前Crash了，此时用户将认为记录插入失败，会进行重试。这将会导致记录重复提交。<br>为了避免这个问题，</p>
 <blockquote>
 <p>客户在提交记录之前将首先生成uuid，连同数据传给Leader。<br>Leader在插入记录之前，将首先检查uuid是否已经出现过。如果是，则直接返回成功</p>
 </blockquote>
-<p>##配置更改<br>配置的更改(节点的增加和删除)，以及配置不可能同时应用于所有节点，将导致系统中不同节点对于一半以上的理解不一致，从而形成系统的错误。<br><img src="/image/raft_split_brain.png" alt="集群分裂"><br>上图展示的是原集群有三个节点，新加入两个节点后导致的集群分裂问题。对于1,2节点它们还是老的配置，这时它们两人认为集群是正常运作的，并持续向外提供服务。而对于345，它们形成了新的集群。从而导致有两个集群都向外提供服务。</p>
-<p>###两阶段配置更改<br>为了解决集群分裂问题，Raft将配置的更改，同样事做用户数据的插入，Leader将配置文件同步到其它节点。系统采用两阶段提交的办法，先让节点从old状态变成old+new状态，再从old+new状态变成new状态。<br><img src="/image/raft_config_change.png" alt="配置更改"></p>
+<h2 id="配置更改">配置更改</h2><p>配置的更改(节点的增加和删除)，以及配置不可能同时应用于所有节点，将导致系统中不同节点对于一半以上的理解不一致，从而形成系统的错误。<br><img src="/image/raft_split_brain.png" alt="集群分裂"><br>上图展示的是原集群有三个节点，新加入两个节点后导致的集群分裂问题。对于1,2节点它们还是老的配置，这时它们两人认为集群是正常运作的，并持续向外提供服务。而对于345，它们形成了新的集群。从而导致有两个集群都向外提供服务。</p>
+<h3 id="两阶段配置更改">两阶段配置更改</h3><p>为了解决集群分裂问题，Raft将配置的更改，同样事做用户数据的插入，Leader将配置文件同步到其它节点。系统采用两阶段提交的办法，先让节点从old状态变成old+new状态，再从old+new状态变成new状态。<br><img src="/image/raft_config_change.png" alt="配置更改"></p>
 <ol>
 <li>提交新配置到集群Leader，Leader复制数据到其它节点，自身也变为old+new状态。新节点直接变成new状态。</li>
 <li>老节点收到新的配置后，将状态变更成old+new的中间状态。</li>
@@ -194,13 +194,12 @@
 </ol>
 <p>如果Leader不发生宕机此方法显然是正确的，我们来看如果在变更时Leader出现宕机时系统的行为。系统有如下的要求</p>
 <ol>
-<li>成为old+new的节点需要征得至少一半以上old节点和一半以上old+new节点，配置更改才算成功。 </li>
+<li>成为old+new的节点需要征得至少一半以上old节点和一半以上old+new节点，配置更改才算成功。</li>
 <li>old节点只需征得一半以上old节点配置即可更改成功。</li>
 </ol>
 <p>在此条件下，Leader宕机时，虽然旧配置和新配置节点都可能成为新的Leader，但又确保了系统不会发生分裂。</p>
 <hr>
-<p>###配置更改的问题</p>
-<ol>
+<h3 id="配置更改的问题">配置更改的问题</h3><ol>
 <li>新的集群节点可能不包含数据<br>新的节点加入集群时，需要首先追上Leader的数据。这里可以标记新节点为一个新的状态，它同步数据，但不参与投票。<br>疑问：论文中提到，新节点追上Leader数据才能开始配置更改过程<blockquote>
 <p>但是如何在不停机的情况下追上Leader这个问题却未提及。</p>
 </blockquote>

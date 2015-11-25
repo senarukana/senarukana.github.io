@@ -5,40 +5,25 @@
   
   <title>logsystem | Zhe Li&#39;s Blog</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-  <meta name="description" content="#需求是用来收集什么日志？ =&amp;gt; 收集手机app的crush记录收集日志的目的? =&amp;gt; 分析crush的原因 =&amp;gt; 最好需要上层的查询分析接口日志的存储时间?永久还是有期限? =&amp;gt; 两年 or 永久?为了估算空间
-##数据特点
-
-Crush收集的记录可能经常会发生变化时间 模块 错误信息 栈信息等
-写明显大于读##潜在的需求
-数据安全性
-日志的汇总
-查询接口
-严重bug通知">
+  <meta name="description" content="logsystem是一道最近在facebook面试中经常遇到的问题，本文抛砖引玉，介绍我关于该问题的思考。
+需求是用来收集什么日志？ =&amp;gt; 收集手机app的crush记录收集日志的目的? =&amp;gt; 分析crush的原因 =&amp;gt; 最好需要上层的查询分析接口日志的存储时间?永久还是有期限? =&amp;gt; 两年 or 永久?为了估算空间
+数据特点
+Crush收集的记录可能经常会发生变化时间 模">
 <meta property="og:type" content="article">
 <meta property="og:title" content="logsystem">
 <meta property="og:url" content="http://yoursite.com/2015/02/18/logsystem/index.html">
 <meta property="og:site_name" content="Zhe Li's Blog">
-<meta property="og:description" content="#需求是用来收集什么日志？ =&amp;gt; 收集手机app的crush记录收集日志的目的? =&amp;gt; 分析crush的原因 =&amp;gt; 最好需要上层的查询分析接口日志的存储时间?永久还是有期限? =&amp;gt; 两年 or 永久?为了估算空间
-##数据特点
-
-Crush收集的记录可能经常会发生变化时间 模块 错误信息 栈信息等
-写明显大于读##潜在的需求
-数据安全性
-日志的汇总
-查询接口
-严重bug通知">
-<meta property="og:updated_time" content="2015-09-29T12:24:44.000Z">
+<meta property="og:description" content="logsystem是一道最近在facebook面试中经常遇到的问题，本文抛砖引玉，介绍我关于该问题的思考。
+需求是用来收集什么日志？ =&amp;gt; 收集手机app的crush记录收集日志的目的? =&amp;gt; 分析crush的原因 =&amp;gt; 最好需要上层的查询分析接口日志的存储时间?永久还是有期限? =&amp;gt; 两年 or 永久?为了估算空间
+数据特点
+Crush收集的记录可能经常会发生变化时间 模">
+<meta property="og:updated_time" content="2015-11-25T17:11:51.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="logsystem">
-<meta name="twitter:description" content="#需求是用来收集什么日志？ =&amp;gt; 收集手机app的crush记录收集日志的目的? =&amp;gt; 分析crush的原因 =&amp;gt; 最好需要上层的查询分析接口日志的存储时间?永久还是有期限? =&amp;gt; 两年 or 永久?为了估算空间
-##数据特点
-
-Crush收集的记录可能经常会发生变化时间 模块 错误信息 栈信息等
-写明显大于读##潜在的需求
-数据安全性
-日志的汇总
-查询接口
-严重bug通知">
+<meta name="twitter:description" content="logsystem是一道最近在facebook面试中经常遇到的问题，本文抛砖引玉，介绍我关于该问题的思考。
+需求是用来收集什么日志？ =&amp;gt; 收集手机app的crush记录收集日志的目的? =&amp;gt; 分析crush的原因 =&amp;gt; 最好需要上层的查询分析接口日志的存储时间?永久还是有期限? =&amp;gt; 两年 or 永久?为了估算空间
+数据特点
+Crush收集的记录可能经常会发生变化时间 模">
   
   
     <link rel="icon" href="favicon.png">
@@ -131,31 +116,34 @@ Crush收集的记录可能经常会发生变化时间 模块 错误信息 栈信
     <div class="article-entry" itemprop="articleBody">
       
                 
-        <p>#需求<br>是用来收集什么日志？ =&gt; 收集手机app的crush记录<br>收集日志的目的? =&gt; 分析crush的原因 =&gt; 最好需要上层的查询分析接口<br>日志的存储时间?永久还是有期限? =&gt; 两年 or 永久?为了估算空间</p>
-<p>##数据特点</p>
-<ol>
+        <p>logsystem是一道最近在facebook面试中经常遇到的问题，本文抛砖引玉，介绍我关于该问题的思考。</p>
+<h1 id="需求">需求</h1><p>是用来收集什么日志？ =&gt; 收集手机app的crush记录<br>收集日志的目的? =&gt; 分析crush的原因 =&gt; 最好需要上层的查询分析接口<br>日志的存储时间?永久还是有期限? =&gt; 两年 or 永久?为了估算空间</p>
+<h2 id="数据特点">数据特点</h2><ol>
 <li>Crush收集的记录可能经常会发生变化<br>时间 模块 错误信息 栈信息等</li>
-<li>写明显大于读<br>##潜在的需求</li>
+<li>写明显大于读</li>
+</ol>
+<h2 id="潜在的需求">潜在的需求</h2><ol>
 <li>数据安全性</li>
 <li>日志的汇总</li>
 <li>查询接口</li>
-<li>严重bug通知<a id="more"></a> 
-#估计<br>##并发量<br>考虑Facebook全球十亿台设备，万分之一的机会一台设备发生bug，那么每秒的平均请求量：</li>
+<li>严重bug通知<a id="more"></a>
+</li>
 </ol>
+<h1 id="估计">估计</h1><h2 id="并发量">并发量</h2><p>考虑Facebook全球十亿台设备，万分之一的机会一台设备发生bug，那么每秒的平均请求量：</p>
 <blockquote>
 <p>1000,000,000 / 100 = 1000w<br>1000w / 24 <em> 60 </em> 60 = 1000w / 8w = 250 qps<br>考虑巅峰是平均请求量的20倍，qps = 5000，仍然很小，并发压力不存在</p>
 </blockquote>
-<p>##容量<br>考虑一条crush记录，1kb。暂且考虑存2年，那么容量为：</p>
+<h2 id="容量">容量</h2><p>考虑一条crush记录，1kb。暂且考虑存2年，那么容量为：</p>
 <p>1kb <em> 1000w </em> 365 * 2 = 8TB<br>开始时可考虑2块2TB磁盘</p>
-<p>#系统原型</p>
-<blockquote>
+<h2 id="系统原型">系统原型</h2><blockquote>
 <p>mobile -&gt; service -&gt;    queue<br>                    /      |      \<br>               storage aggregater  alert</p>
-<p>##用户协议：可考虑http或者udp<br>从简单实现角度入手，采用http请求，发送json数据<br>考虑性能可采用udp，丢数据是可以接受的</p>
-<p>##Mobile<br>考虑实现：每次崩溃后，写入记录到本地，下次启动时发送。<br>优化： 发送时，对同类错误进行去重和汇总后发送，避免同一请求发送多次。</p>
-<p>##Service<br>功能：请求的路由，安全，流量控制。<br>最简单的办法采用Nginx，利用upstream模块，反向代理到消息队列中</p>
-<p>##Storage<br>非关系型数据存储，可考虑HBase, MongoDB。</p>
-<p>##Aggreagator<br>对数据按照时间、类型维度进行汇总，存入统一数据库，用于查询</p>
-<p>#设计可能存在的问题</p>
+</blockquote>
+<h3 id="用户协议：可考虑http或者udp">用户协议：可考虑http或者udp</h3><p>从简单实现角度入手，采用http请求，发送json数据<br>考虑性能可采用udp，丢数据是可以接受的</p>
+<h4 id="Mobile">Mobile</h4><p>考虑实现：每次崩溃后，写入记录到本地，下次启动时发送。<br>优化： 发送时，对同类错误进行去重和汇总后发送，避免同一请求发送多次。</p>
+<h4 id="Service">Service</h4><p>功能：请求的路由，安全，流量控制。<br>最简单的办法采用Nginx，利用upstream模块，反向代理到消息队列中</p>
+<h4 id="Storage">Storage</h4><p>非关系型数据存储，可考虑HBase, MongoDB。</p>
+<h4 id="Aggreagator">Aggreagator</h4><p>对数据按照时间、类型维度进行汇总，存入统一数据库，用于查询</p>
+<h2 id="设计可能存在的问题">设计可能存在的问题</h2><blockquote>
 <p>数据跨地域存储，造成分析时难度。每次分析可能只能分析一个地域的数据。跨地域，跨表的Join的速度可能存在问题。</p>
 </blockquote>
 <p>解法：考虑引入一个中间节点，定时汇总多个地域的数据。</p>
@@ -163,8 +151,7 @@ Crush收集的记录可能经常会发生变化时间 模块 错误信息 栈信
 <p>nginx访问hbase可能因为网络问题等原因，造成短时间吞吐较低，形成瓶颈。</p>
 </blockquote>
 <p>解法: 考虑nginx每次接收到Crush记录后，写入磁盘。由后台收集日志程序，发送请求到hbase端。</p>
-<p>#总结</p>
-<p>在系统初期，在每个地域部署一台服务器，需要最少三台数据服务器，每个服务器需要至少2T硬盘，可坚持半年，并且每半年增加2T。<br>系统上线之后，可考虑加入日志收集模块，减少nginx与数据服务器的交互。并且引入数据汇聚节点，定期同步在各个地域的服务器。</p>
+<h1 id="总结">总结</h1><p>在系统初期，在每个地域部署一台服务器，需要最少三台数据服务器，每个服务器需要至少2T硬盘，可坚持半年，并且每半年增加2T。<br>系统上线之后，可考虑加入日志收集模块，减少nginx与数据服务器的交互。并且引入数据汇聚节点，定期同步在各个地域的服务器。</p>
 
       
     </div>
