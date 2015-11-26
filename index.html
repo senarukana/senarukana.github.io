@@ -382,6 +382,93 @@
 
 
     
+      <article id="post-raft" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-inner">
+    
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2015/06/13/raft/">raft</a>
+    </h1>
+  
+
+        <div class="article-meta">
+          
+  <div class="article-date">
+    <i class="fa fa-calendar"></i>
+    <a href="/2015/06/13/raft/">
+      <time datetime="2015-06-13T05:11:07.000Z" itemprop="datePublished">2015-06-13</time>
+    </a>
+  </div>
+
+
+          
+        </div>
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h1 id="简介">简介</h1><p>在分布式系统中，一个经典的问题是如何高效、可靠的保证运行集群中各个节点数据保持一致。Paxos算法是解决该问题中最广为人知的算法，它由Lamport提出，但由于其描述的较为晦涩，同时存在多处省略，在实现过程中往往有很多细节难于处理，在工程中存在许多类似而又不统一的实现。ZooKeeper使用的Zab算法实际上和Paxos存在很多地方的不同。<br>Raft算法是由Stanford教授提出为了帮助学生理解的同步算法，它和Paxos算法类似，能保证集群数据的强一致性，但它的概念相比Paxos更少，也更便于理解，论文在<a href="https://ramcloud.stanford.edu/raft.pdf">这里</a>，结合youtube上的<a href="https://www.youtube.com/watch?v=JEpsBg0AO6o">教学视频</a>一同观看效果更佳。</p>
+<h2 id="现状">现状</h2><p>当前已经存在许多知名开源系统基于Raft，如<a href="https://github.com/coreos/etcd">Etcd</a>, <a href="https://github.com/hashicorp/consul">Consul</a>等。同时还有些系统如<a href="https://github.com/chrislusf/seaweedfs">SeaWeedFS</a>, <a href="https://influxdb.com/">InfluxDB</a>采用内嵌的形式实现了Raft协议。<br>我也简单的基于<a href="http://github.com/goraft/raft">Goraft</a>，基于leveldb实现了简单示例性质的强一致存储<a href="(https://github.com/senarukana/rldb">系统</a>。</p>
+<h1 id="算法目标">算法目标</h1><p>在讲述Raft算法之前，我们首先讨论一致性算法的要求，它包括以下四个方面：</p>
+<ol>
+<li>算法需要能够承受各种类型的错误。</li>
+<li>一半以上的节点能运行集群能够正常运作</li>
+<li>每个操作只要一半以上的节点成功执行就算成功</li>
+<li>不能依赖于任何外部时序</li>
+</ol>
+<h1 id="实现">实现</h1><p>Raft协议基于复制状态机（replicated state machine），即一组server从相同的初始状态起，按相同的顺序执行相同的命令，最终会达到一直的状态，如下图所示，一组server记录相同的操作日志，并以相同的顺序应用到状态机。<br><img src="/image/replicate_state_machine.jpg" alt="复制状态机"></p>
+<p>它将一致性问题进行分解为“集群选举”和“复制日志”两个部分。 集群选举过程是为了从集群中会选出唯一的leader负责服务客户端的请求。而复制日志过程，是为了保证所有server的状态和最终达到跟leader一致。</p>
+<h2 id="集群选举">集群选举</h2><h3 id="集群节点类型">集群节点类型</h3><p>集群中节点有三种类型，分别为: Leader, Follower, Candidate。 在初始时，大家都为Follower。通过选举产生集群的Leader。</p>
+<ul>
+<li><p>在任何时刻，集群只有一个Leader。Leader负责接收所有用户请求，并通过”复制日志”方式同步给Follower。</p>
+</li>
+<li><p>Follower以被动的方式运行，只负责响应请求，而不主动发出请求。</p>
+</li>
+<li><p>Candidate状态是集群选举开始后，希望变成Leader节点的临时状态。</p>
+</li>
+</ul>
+<h3 id="集群选举过程">集群选举过程</h3><p>Leader定时向Follower发送心跳信息，当某个Follower长期未接受到Leader的心跳信息，Follower将发动新一轮的Leader选举，这时它会做两件事情。</p>
+<ol>
+<li>Follower变换其状态为Candidate</li>
+<li>将当前的Term+1，发起投票请求。</li>
+</ol>
+<p>对于每一轮选举(对应一个Term)，每个节点只能投一次票。 节点收到投票请求后，将比较请求中的Term与自身的Term。此时有三种情况：</p>
+<ol>
+<li>请求的Term与当前Term相同<br>节点此轮还未投过票，此时将返回同意请求。<br>节点此轮已经投过票，不做回应</li>
+<li>请求的Term大于当前Term<br>表明节点已经落后，更新节点的Term，返回voteGranted = True</li>
+<li>请求的Term小于当前Term<br>不做回应</li>
+</ol>
+<h4 id="Candidate对于投票的反馈">Candidate对于投票的反馈</h4><ol>
+<li>当前节点被选为新的Leader<br>当节点收到超过一半节点的投票，确定其是新的Leader。此时将状态更新为Leader，发送新一轮心跳请求，告知其他节点Leader已经产生。</li>
+<li>收到来自Leader的数据写入请求，且term &gt;= 当前节点的term<br>更新Term为请求反馈的Term，变更状态为Follower</li>
+<li>投票超时仍没有收到超过一半的确认<br>递增Term，等待一段时间，开始新一轮的选举</li>
+</ol>
+<p><img src="/image/raft_election.png" alt="集群选举后系统状态"></p>
+        
+          <p class="article-more-link">
+            <a href="/2015/06/13/raft/#more">Read More</a>
+          </p>
+        
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://yoursite.com/2015/06/13/raft/" data-id="cih0i58jx000phqw4akjvjfuu" class="article-share-link">分享到</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/system/">system</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+    
       <article id="post-atlas-baidu-cloud-storage" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-inner">
     
@@ -614,93 +701,6 @@
 
 
     
-      <article id="post-raft" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-inner">
-    
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2015/05/22/raft/">raft</a>
-    </h1>
-  
-
-        <div class="article-meta">
-          
-  <div class="article-date">
-    <i class="fa fa-calendar"></i>
-    <a href="/2015/05/22/raft/">
-      <time datetime="2015-05-22T05:11:07.000Z" itemprop="datePublished">2015-05-22</time>
-    </a>
-  </div>
-
-
-          
-        </div>
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h1 id="简介">简介</h1><p>在分布式系统中，一个经典的问题是如何高效、可靠的保证运行集群中各个节点数据保持一致。Paxos算法是解决该问题中最广为人知的算法，它由Lamport提出，但由于其描述的较为晦涩，同时存在多处省略，在实现过程中往往有很多细节难于处理，在工程中存在许多类似而又不统一的实现。ZooKeeper使用的Zab算法实际上和Paxos存在很多地方的不同。<br>Raft算法是由Stanford教授提出为了帮助学生理解的同步算法，它和Paxos算法类似，能保证集群数据的强一致性，但它的概念相比Paxos更少，也更便于理解，论文在<a href="https://ramcloud.stanford.edu/raft.pdf">这里</a>，结合youtube上的<a href="https://www.youtube.com/watch?v=JEpsBg0AO6o">教学视频</a>一同观看效果更佳。</p>
-<h2 id="现状">现状</h2><p>当前已经存在许多知名开源系统基于Raft，如<a href="https://github.com/coreos/etcd">Etcd</a>, <a href="https://github.com/hashicorp/consul">Consul</a>等。同时还有些系统如<a href="https://github.com/chrislusf/seaweedfs">SeaWeedFS</a>, <a href="https://influxdb.com/">InfluxDB</a>采用内嵌的形式实现了Raft协议。<br>我也简单的基于<a href="http://github.com/goraft/raft">Goraft</a>，基于leveldb实现了简单示例性质的强一致存储<a href="(https://github.com/senarukana/rldb">系统</a>。</p>
-<h1 id="算法目标">算法目标</h1><p>在讲述Raft算法之前，我们首先讨论一致性算法的要求，它包括以下四个方面：</p>
-<ol>
-<li>算法需要能够承受各种类型的错误。</li>
-<li>一半以上的节点能运行集群能够正常运作</li>
-<li>每个操作只要一半以上的节点成功执行就算成功</li>
-<li>不能依赖于任何外部时序</li>
-</ol>
-<h1 id="实现">实现</h1><p>Raft协议基于复制状态机（replicated state machine），即一组server从相同的初始状态起，按相同的顺序执行相同的命令，最终会达到一直的状态，如下图所示，一组server记录相同的操作日志，并以相同的顺序应用到状态机。<br><img src="/image/replicate_state_machine.jpg" alt="复制状态机"></p>
-<p>它将一致性问题进行分解为“集群选举”和“复制日志”两个部分。 集群选举过程是为了从集群中会选出唯一的leader负责服务客户端的请求。而复制日志过程，是为了保证所有server的状态和最终达到跟leader一致。</p>
-<h2 id="集群选举">集群选举</h2><h3 id="集群节点类型">集群节点类型</h3><p>集群中节点有三种类型，分别为: Leader, Follower, Candidate。 在初始时，大家都为Follower。通过选举产生集群的Leader。</p>
-<ul>
-<li><p>在任何时刻，集群只有一个Leader。Leader负责接收所有用户请求，并通过”复制日志”方式同步给Follower。</p>
-</li>
-<li><p>Follower以被动的方式运行，只负责响应请求，而不主动发出请求。</p>
-</li>
-<li><p>Candidate状态是集群选举开始后，希望变成Leader节点的临时状态。</p>
-</li>
-</ul>
-<h3 id="集群选举过程">集群选举过程</h3><p>Leader定时向Follower发送心跳信息，当某个Follower长期未接受到Leader的心跳信息，Follower将发动新一轮的Leader选举，这时它会做两件事情。</p>
-<ol>
-<li>Follower变换其状态为Candidate</li>
-<li>将当前的Term+1，发起投票请求。</li>
-</ol>
-<p>对于每一轮选举(对应一个Term)，每个节点只能投一次票。 节点收到投票请求后，将比较请求中的Term与自身的Term。此时有三种情况：</p>
-<ol>
-<li>请求的Term与当前Term相同<br>节点此轮还未投过票，此时将返回同意请求。<br>节点此轮已经投过票，不做回应</li>
-<li>请求的Term大于当前Term<br>表明节点已经落后，更新节点的Term，返回voteGranted = True</li>
-<li>请求的Term小于当前Term<br>不做回应</li>
-</ol>
-<h4 id="Candidate对于投票的反馈">Candidate对于投票的反馈</h4><ol>
-<li>当前节点被选为新的Leader<br>当节点收到超过一半节点的投票，确定其是新的Leader。此时将状态更新为Leader，发送新一轮心跳请求，告知其他节点Leader已经产生。</li>
-<li>收到来自Leader的数据写入请求，且term &gt;= 当前节点的term<br>更新Term为请求反馈的Term，变更状态为Follower</li>
-<li>投票超时仍没有收到超过一半的确认<br>递增Term，等待一段时间，开始新一轮的选举</li>
-</ol>
-<p><img src="/image/raft_election.png" alt="集群选举后系统状态"></p>
-        
-          <p class="article-more-link">
-            <a href="/2015/05/22/raft/#more">Read More</a>
-          </p>
-        
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://yoursite.com/2015/05/22/raft/" data-id="cih0i58jx000phqw4akjvjfuu" class="article-share-link">分享到</a>
-      
-      
-  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/system/">system</a></li></ul>
-
-    </footer>
-  </div>
-  
-</article>
-
-
-
-    
       <nav id="page-nav">
         <span class="page-number current">1</span><a class="page-number" href="/page/2/">2</a><a class="page-number" href="/page/3/">3</a><a class="page-number" href="/page/4/">4</a><a class="extend next" rel="next" href="/page/2/">下一页 &raquo;</a>
       </nav>
@@ -779,7 +779,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">归档</h3>
     <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/11/">November 2015</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/09/">September 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/08/">August 2015</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/06/">June 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/05/">May 2015</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/04/">April 2015</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/03/">March 2015</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/02/">February 2015</a><span class="archive-list-count">12</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/01/">January 2015</a><span class="archive-list-count">4</span></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/11/">November 2015</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/09/">September 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/08/">August 2015</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/06/">June 2015</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/05/">May 2015</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/04/">April 2015</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/03/">March 2015</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/02/">February 2015</a><span class="archive-list-count">12</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/01/">January 2015</a><span class="archive-list-count">4</span></li></ul>
     </div>
   </div>
 
