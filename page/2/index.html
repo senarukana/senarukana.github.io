@@ -130,6 +130,72 @@
 
 
     
+      <article id="post-weedfs" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-inner">
+    
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2015/04/10/weedfs/">WEEDFS</a>
+    </h1>
+  
+
+        <div class="article-meta">
+          
+  <div class="article-date">
+    <i class="fa fa-calendar"></i>
+    <a href="/2015/04/10/weedfs/">
+      <time datetime="2015-04-10T05:01:50.000Z" itemprop="datePublished">2015-04-10</time>
+    </a>
+  </div>
+
+
+          
+        </div>
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>weed-fs是一款由Go语言实现的，基于facebook <a href="https://www.usenix.org/legacy/event/osdi10/tech/full_papers/Beaver.pdf">haystack论文</a>的面向blob的分布式存储系统，部分应用于google内部。该系统具有代码量较少，结构简单，且不包含第三方依赖，易于部署的特点。本文将简单介绍一下这个系统。</p>
+<h1 id="特点">特点</h1><ul>
+<li>针对大量小文件的文件系统。</li>
+<li>中心化设计，架构简单，代码量少，由go编写易于维护。</li>
+<li>各种粒度的复制级别：包括同步/异步rackaware， datacenter aware的复制等。</li>
+<li>无单节点故障，Master之间Raft协议保证数据可靠性，节点故障可秒级切换。</li>
+<li>支持各种级别的数据压缩</li>
+<li>支持目录结构，记录目录元信息。</li>
+</ul>
+<h1 id="设计">设计</h1><p>设计很大程度上借鉴的facebook的论文:Finding a neddle in the hay stack</p>
+<p>系统由两个部分构成：Master和VolumeServer。</p>
+<h2 id="Master">Master</h2><p>Master: 维护Volume的元数据，和VolumeServer的状态</p>
+<h3 id="元数据管理">元数据管理</h3><p>为了限制Master内存使用，它只维护volumeid到VolumeServer的映射关系。 客户端需要<strong>自己</strong>维护文件到fid的映射，如存放到memcached或者mysql。<br>关系如下：<strong>topology/data_center/rack/data_node/volumes</strong><br>请求处理方式</p>
+<blockquote>
+<p>每次读写请求都将经过Master，Master为写请求分配fid，为读请求返回fid对应的Volume地址</p>
+</blockquote>
+        
+          <p class="article-more-link">
+            <a href="/2015/04/10/weedfs/#more">Read More</a>
+          </p>
+        
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://yoursite.com/2015/04/10/weedfs/" data-id="cih0i58iw0003hqw44h62dj9t" class="article-share-link">分享到</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/system/">system</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+    
       <article id="post-life-of-running" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-inner">
     
@@ -573,65 +639,6 @@
 
 
     
-      <article id="post-dropegg" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-inner">
-    
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2015/02/20/dropegg/">dropegg</a>
-    </h1>
-  
-
-        <div class="article-meta">
-          
-  <div class="article-date">
-    <i class="fa fa-calendar"></i>
-    <a href="/2015/02/20/dropegg/">
-      <time datetime="2015-02-20T05:02:59.000Z" itemprop="datePublished">2015-02-20</time>
-    </a>
-  </div>
-
-
-          
-        </div>
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&#26377;&#24231;N&#23618;&#30340;&#24314;&#31569;&#65292;&#35831;&#20320;&#29992;&#20004;&#20010;&#30456;&#21516;&#40481;&#34507;&#30830;&#23450;&#40481;&#34507;&#21487;&#20197;&#23433;&#20840;&#33853;&#19979;&#30340;&#26368;&#39640;&#20301;&#32622;&#65292;&#27714;&#26368;&#23569;&#30340;&#23581;&#35797;&#27425;&#25968;&#12290;</span><br></pre></td></tr></table></figure>
-<ol>
-<li><p>逐层尝试<br>首先想到的是最简单的办法是一层开始往上试。那么显然最坏情况是在最后一层不能安全降落，此时尝试次数为N-1。时间复杂度为O(N)</p>
-</li>
-<li><p>二分尝试<br>我们还容易想到2分的办法。第一次在N/2层，如果碎了回到一的办法一层层向上检查{1,N/2-1}层，如果没碎则继续2分考察3/4*N层。<br>此方法最坏情况发生在第一次鸡蛋就碎了，此时我们需要从第一层，或者N/2层开始，依次向上试。需要尝试N/2次，时间复杂度为O(N)</p>
-</li>
-<li><p>动态规划<br>上述两种方案都不够好，对于方法1尝试的太过保守，导致大量丢第一颗蛋。方法2尝试的太过激进，需要大量丢第二颗蛋。可以发现，如果第一颗鸡蛋碎了后，第二颗鸡蛋的尝试次是恒定的，它将只能从上一次没碎的未知到这次碎了的未知逐一检测。发现这个性质后，我们考虑使用动态动态规划。<br>设F(i)表示i层楼梯两个鸡蛋最少需要尝试的次数。<br>对于i层高的建筑，假设第一颗鸡蛋在第K层丢下。它如果碎了，则第二颗鸡蛋需要向下需要尝试K-2次。而如果没碎，则仍然使用第一颗鸡蛋，测试剩下的i-k层。</p>
-<blockquote>
-<p>F(i) =  1+min{K-2, F(i-k)} k = 1 to i<br>时间复杂度为O(n^2)</p>
-        
-          <p class="article-more-link">
-            <a href="/2015/02/20/dropegg/#more">Read More</a>
-          </p>
-        
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://yoursite.com/2015/02/20/dropegg/" data-id="cih0i58kr001ghqw4gzil5ldr" class="article-share-link">分享到</a>
-      
-      
-  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/algorithm/">algorithm</a></li></ul>
-
-    </footer>
-  </div>
-  
-</article>
-
-
-
-    
       <nav id="page-nav">
         <a class="extend prev" rel="prev" href="/">&laquo; 上一页</a><a class="page-number" href="/">1</a><span class="page-number current">2</span><a class="page-number" href="/page/3/">3</a><a class="page-number" href="/page/4/">4</a><a class="extend next" rel="next" href="/page/3/">下一页 &raquo;</a>
       </nav>
@@ -710,7 +717,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">归档</h3>
     <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/11/">November 2015</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/09/">September 2015</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/08/">August 2015</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/06/">June 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/05/">May 2015</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/04/">April 2015</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/03/">March 2015</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/02/">February 2015</a><span class="archive-list-count">12</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/01/">January 2015</a><span class="archive-list-count">5</span></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/11/">November 2015</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/09/">September 2015</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/08/">August 2015</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/06/">June 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/05/">May 2015</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/04/">April 2015</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/03/">March 2015</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/02/">February 2015</a><span class="archive-list-count">12</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/01/">January 2015</a><span class="archive-list-count">4</span></li></ul>
     </div>
   </div>
 

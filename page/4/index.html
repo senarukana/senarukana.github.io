@@ -77,6 +77,57 @@
     <div class="outer">
       
       <section id="main">
+      <article id="post-substring" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-inner">
+    
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2015/01/26/substring/">substring</a>
+    </h1>
+  
+
+        <div class="article-meta">
+          
+  <div class="article-date">
+    <i class="fa fa-calendar"></i>
+    <a href="/2015/01/26/substring/">
+      <time datetime="2015-01-26T05:02:42.000Z" itemprop="datePublished">2015-01-26</time>
+    </a>
+  </div>
+
+
+          
+        </div>
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>#出现多于一次的最长的子串<br>eg: “abcabcbcb” -&gt; “abc”<br>eg: “aababa” -&gt; “aba”<br>解法：为后缀建立Trie树，建树过程中，找到最长的。<br>代码：<a href="https://gist.github.com/senarukana/25b759f1ef1d28405dce">https://gist.github.com/senarukana/25b759f1ef1d28405dce</a><br>
+        
+          <p class="article-more-link">
+            <a href="/2015/01/26/substring/#more">Read More</a>
+          </p>
+        
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://yoursite.com/2015/01/26/substring/" data-id="cih0i58jk000ehqw4fqi6bsl5" class="article-share-link">分享到</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/algorithm/">algorithm</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+    
       <article id="post-tree-encode" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-inner">
     
@@ -193,72 +244,6 @@
 
 
     
-      <article id="post-weedfs" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-inner">
-    
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2015/01/10/weedfs/">WEEDFS</a>
-    </h1>
-  
-
-        <div class="article-meta">
-          
-  <div class="article-date">
-    <i class="fa fa-calendar"></i>
-    <a href="/2015/01/10/weedfs/">
-      <time datetime="2015-01-10T05:01:50.000Z" itemprop="datePublished">2015-01-10</time>
-    </a>
-  </div>
-
-
-          
-        </div>
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p>weed-fs是一款由Go语言实现的，基于facebook <a href="https://www.usenix.org/legacy/event/osdi10/tech/full_papers/Beaver.pdf">haystack论文</a>的面向blob的分布式存储系统，部分应用于google内部。该系统具有代码量较少，结构简单，且不包含第三方依赖，易于部署的特点。本文将简单介绍一下这个系统。</p>
-<h1 id="特点">特点</h1><ul>
-<li>针对大量小文件的文件系统。</li>
-<li>中心化设计，架构简单，代码量少，由go编写易于维护。</li>
-<li>各种粒度的复制级别：包括同步/异步rackaware， datacenter aware的复制等。</li>
-<li>无单节点故障，Master之间Raft协议保证数据可靠性，节点故障可秒级切换。</li>
-<li>支持各种级别的数据压缩</li>
-<li>支持目录结构，记录目录元信息。</li>
-</ul>
-<h1 id="设计">设计</h1><p>设计很大程度上借鉴的facebook的论文:Finding a neddle in the hay stack</p>
-<p>系统由两个部分构成：Master和VolumeServer。</p>
-<h2 id="Master">Master</h2><p>Master: 维护Volume的元数据，和VolumeServer的状态</p>
-<h3 id="元数据管理">元数据管理</h3><p>为了限制Master内存使用，它只维护volumeid到VolumeServer的映射关系。 客户端需要<strong>自己</strong>维护文件到fid的映射，如存放到memcached或者mysql。<br>关系如下：<strong>topology/data_center/rack/data_node/volumes</strong><br>请求处理方式</p>
-<blockquote>
-<p>每次读写请求都将经过Master，Master为写请求分配fid，为读请求返回fid对应的Volume地址</p>
-</blockquote>
-        
-          <p class="article-more-link">
-            <a href="/2015/01/10/weedfs/#more">Read More</a>
-          </p>
-        
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://yoursite.com/2015/01/10/weedfs/" data-id="cih0i58iw0003hqw44h62dj9t" class="article-share-link">分享到</a>
-      
-      
-  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/system/">system</a></li></ul>
-
-    </footer>
-  </div>
-  
-</article>
-
-
-
-    
       <nav id="page-nav">
         <a class="extend prev" rel="prev" href="/page/3/">&laquo; 上一页</a><a class="page-number" href="/">1</a><a class="page-number" href="/page/2/">2</a><a class="page-number" href="/page/3/">3</a><span class="page-number current">4</span>
       </nav>
@@ -337,7 +322,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">归档</h3>
     <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/11/">November 2015</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/09/">September 2015</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/08/">August 2015</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/06/">June 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/05/">May 2015</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/04/">April 2015</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/03/">March 2015</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/02/">February 2015</a><span class="archive-list-count">12</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/01/">January 2015</a><span class="archive-list-count">5</span></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/11/">November 2015</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/09/">September 2015</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/08/">August 2015</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/06/">June 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/05/">May 2015</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/04/">April 2015</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/03/">March 2015</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/02/">February 2015</a><span class="archive-list-count">12</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/01/">January 2015</a><span class="archive-list-count">4</span></li></ul>
     </div>
   </div>
 
