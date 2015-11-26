@@ -504,7 +504,7 @@
 <li>百度云94%的文件在[128KB-256KB]之间，所以atlas主要针对小文件存储</li>
 <li>百度云前面有CDN，到达atlas的请求基本都是随机访问，atlas是随机访问的存储引擎，不支持range操作</li>
 </ul>
-<h1 id="架构">架构</h1><p>对外系统暴露三个简单的接口：<br><img src="/image/atlas_interface.png" alt="API"></p>
+<h1 id="架构">架构</h1><p>对外系统暴露三个简单的接口：<br><img src="/image/atlas-interface.png" alt="API"></p>
 <p><img src="/image/atlas_architecture.png" alt="Architecture"><br>在设计上系统分为两层，上层PIS(Patch and Index)，负责文件到文件块的映射和临时数据的写入。<br>下层RBS(Raid-like Block System)用来实际存储数据。<br>用户在使用时，首先访问PIS的元数据服务器，获取PIS的路由表。接着通过文件名进行hash，在路由表中找到对应的PIS服务器，向其发出请求。</p>
 <h2 id="PIS系统">PIS系统</h2><p>PIS是系统的入口，它提供基于文件的三个接口Put, Get, Delete。同时负责存储文件到文件块的索引，和临时数据块。<br>在设计上，它采用中心化设计，分为Master节点和数据节点。由Master负责管理全局PIS的存活情况和系统路由，数据节点负责存储索引文件。<br><img src="/image/atlas_pis.png" alt="PIS"><br>上图为PIS模块图，为了保证数据的强一致性，用户请求到达PIS时，它将首先生成该文件对应的ID，接着经由复制模块，将此文件复制到两个从节点。<br>当复制完成后，PIS将数据写入临时的Block中。每个Block最大为64MB。<br>接着在Index中，记录此文件ID在临时Block的位置的偏移和文件长度<br>一旦Block超过64MB，将会对该文件进行打包不再修改，并经由RBSClient传给RBS。</p>
 <p>Index采用定长形式存储，引擎采用LevelDB。<br>它的每个Key是128位全局独立ID。Value是由三元组成(BlockId, Offset, Length)。分别对应文件块ID，块上的偏移和文件的大小。<br>由于每条记录都很小，LevelDB在执行Compaction操作的代价也较小。</p>
