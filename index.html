@@ -420,7 +420,7 @@
 <li>每个操作只要一半以上的节点成功执行就算成功</li>
 <li>不能依赖于任何外部时序</li>
 </ol>
-<h1 id="实现">实现</h1><p>Raft协议基于复制状态机（replicated state machine），即一组server从相同的初始状态起，按相同的顺序执行相同的命令，最终会达到一直的状态，如下图所示，一组server记录相同的操作日志，并以相同的顺序应用到状态机。<br><img src="/image/replicate_state_machine.jpg" alt="复制状态机"></p>
+<h1 id="实现">实现</h1><p>Raft协议基于复制状态机（replicated state machine），即一组server从相同的初始状态起，按相同的顺序执行相同的命令，最终会达到一直的状态，如下图所示，一组server记录相同的操作日志，并以相同的顺序应用到状态机。<br><img src="/image/replicated_state_machine.jpg" alt="复制状态机"></p>
 <p>它将一致性问题进行分解为“集群选举”和“复制日志”两个部分。 集群选举过程是为了从集群中会选出唯一的leader负责服务客户端的请求。而复制日志过程，是为了保证所有server的状态和最终达到跟leader一致。</p>
 <h2 id="集群选举">集群选举</h2><h3 id="集群节点类型">集群节点类型</h3><p>集群中节点有三种类型，分别为: Leader, Follower, Candidate。 在初始时，大家都为Follower。通过选举产生集群的Leader。</p>
 <ul>
