@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>分布式缓存服务如何应对双11-流量突增问题 | Zhe Li&#39;s Blog</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="每年一度的双11已经过完，相比往年不同今年有幸参加了双11全过程。我所在的缓存团队承担着双11很重要的职责，负责存储商品库存、全站用户Session、购物车等峰值QPS上千万级别的大业务。值得骄傲的是，团队的服务除了在0点时极短时间内对购物车和无线业务实施了限流，整个过程异常稳定。关于如何架构亿万级别QPS系统或者秒杀系统，之前在网络上已经讨论的很多，主要涉及负载均衡、CDN、缓存、静态化、降级、">
+<meta property="og:type" content="article">
+<meta property="og:title" content="分布式缓存服务如何应对双11-流量突增问题">
+<meta property="og:url" content="http://yoursite.com/2015/11/13/11tech_traffic_control/index.html">
+<meta property="og:site_name" content="Zhe Li's Blog">
+<meta property="og:description" content="每年一度的双11已经过完，相比往年不同今年有幸参加了双11全过程。我所在的缓存团队承担着双11很重要的职责，负责存储商品库存、全站用户Session、购物车等峰值QPS上千万级别的大业务。值得骄傲的是，团队的服务除了在0点时极短时间内对购物车和无线业务实施了限流，整个过程异常稳定。关于如何架构亿万级别QPS系统或者秒杀系统，之前在网络上已经讨论的很多，主要涉及负载均衡、CDN、缓存、静态化、降级、">
+<meta property="og:image" content="http://yoursite.com/image/flow_control_architecture.png">
+<meta property="og:image" content="http://yoursite.com/image/flow_control_result.png">
+<meta property="og:updated_time" content="2015-11-26T06:37:21.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="分布式缓存服务如何应对双11-流量突增问题">
+<meta name="twitter:description" content="每年一度的双11已经过完，相比往年不同今年有幸参加了双11全过程。我所在的缓存团队承担着双11很重要的职责，负责存储商品库存、全站用户Session、购物车等峰值QPS上千万级别的大业务。值得骄傲的是，团队的服务除了在0点时极短时间内对购物车和无线业务实施了限流，整个过程异常稳定。关于如何架构亿万级别QPS系统或者秒杀系统，之前在网络上已经讨论的很多，主要涉及负载均衡、CDN、缓存、静态化、降级、">
+  
+  
+    <link rel="icon" href="favicon.png">
+  
+  
+ <link href='https://fonts.googleapis.com/css?family=Open+Sans:400italic,400,600' rel='stylesheet' type='text/css'>
+ <link href='https://fonts.googleapis.com/css?family=Source+Code+Pro' rel='stylesheet' type='text/css'>
+
+
+  <link rel="stylesheet" href="/css/style.css" type="text/css">
+  <link rel="stylesheet" href="/font-awesome/css/font-awesome.min.css" type="text/css">
+  
+
+  
+
+  
+</head>
+<body>
+  <div id="container">
+    <header id="header">
+  <div id="header-main" class="header-inner">
+    <div class="outer">
+      <a href="/" id="logo"><i class="logo" style="background-image: url(/css/images/logo.png)"></i><span class="site-title">Zhe Li&#39;s Blog</span></a>
+      <nav id="main-nav">
+        
+          <a class="main-nav-link" href="/.">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+          <a class="main-nav-link" href="/categories">Categories</a>
+        
+          <a class="main-nav-link" href="/tags">Tags</a>
+        
+      </nav>
+      
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" results="0" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit"> </button><input type="hidden" name="sitesearch" value="http://yoursite.com"></form>
+      </div>
+    </div>
+  </div>
+  <div id="main-nav-mobile" class="header-sub header-inner">
+    <table class="menu outer">
+      <tr>
+        
+          <td><a class="main-nav-link" href="/.">Home</a></td>
+        
+          <td><a class="main-nav-link" href="/archives">Archives</a></td>
+        
+          <td><a class="main-nav-link" href="/categories">Categories</a></td>
+        
+          <td><a class="main-nav-link" href="/tags">Tags</a></td>
+        
+        <td>
+          <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" results="0" class="search-form-input" placeholder="Search"><input type="hidden" name="sitesearch" value="http://yoursite.com"></form>
+        </td>
+      </tr>
+    </table>
+  </div>
+</header>
+
+    <div class="outer">
+      
+      <section id="main"><article id="post-11tech_traffic_control" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-inner">
+    
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      分布式缓存服务如何应对双11-流量突增问题
+    </h1>
+  
+
+        <div class="article-meta">
+          
+  <div class="article-date">
+    <i class="fa fa-calendar"></i>
+    <a href="/2015/11/13/11tech_traffic_control/">
+      <time datetime="2015-11-13T13:03:44.000Z" itemprop="datePublished">2015-11-13</time>
+    </a>
+  </div>
+
+
+          
+        </div>
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+                
+        <p>每年一度的双11已经过完，相比往年不同今年有幸参加了双11全过程。我所在的缓存团队承担着双11很重要的职责，负责存储商品库存、全站用户Session、购物车等峰值QPS上千万级别的大业务。值得骄傲的是，团队的服务除了在0点时极短时间内对购物车和无线业务实施了限流，整个过程异常稳定。<br>关于如何架构亿万级别QPS系统或者秒杀系统，之前在网络上已经讨论的很多，主要涉及负载均衡、CDN、缓存、静态化、降级、限流、数据压缩等。但那些讨论往往面太广，趁着现在双11余韵还在，本篇文章将站在我们的键值存储服务<a href="http://www.infoq.com/cn/articles/taobao-tair" target="_blank" rel="external">Tair</a>系统的角度来阐述，我们是如何应对双11的。</p>
+<h1 id="流量突增问题">流量突增问题</h1><p>大促最明显的现象是在短时间内有海量并发，造成服务器过载，资源使用率急剧提升，服务响应变慢，甚至有宕机风险。<br>解决办法分大致分为两类，提前预防，案发时应急处理。</p>
+<p>提前预防是在大促发生之前做的准备工作。它依赖于客户在事先对其使用资源的评估，一次好的预估往往比临时的应急处理方案要更有用的多。通常在大促发生之前，我们通过多次对促销时流量的模拟，反复调整机器的数量，最后设置一个合理的值，这里主要考验的是对系统和用户行为的了解。</p>
+<p>但通常我们很难保证业务方对于资源的使用有着准确的预估，当超过预期的流量导入到系统的时候，系统需要应急办法来处理。<br>对于我们缓存系统，应急办法主要涉及两种：</p>
+<ol>
+<li>集群的扩容<br>通过增加机器的方式，来均摊负载。该办法思路简单，但在实践过程中，如果直接使用，效果往往很差。因为在机器负载很高的时候，我们执行的扩容操作可能会进一步恶化系统性能。针对我们缓存系统，在大促时命中率往往超过99.99%，贸然的集群扩容，将极有可能击穿后端存储系统。<br>为了解决这个问题，我们在扩容之后会事先对集群进行预热，只有当命中率达到预期后才执行扩容。</li>
+<li><p>流量控制系统<br>当远超出预期的请求到达服务时我们需要一种机器资源的保护策略：流量控制。在海量并发请求到来时及时返回错误告知客户端减少请求发送数量，让客户端直接收到返回错误，这样的收益来自两个方面：</p>
+<ul>
+<li>1.避免服务器过载。如过长请求排队造成的无谓的CPU、内存、网络等性能损失。</li>
+<li>2.客户端快速收到错误，使其进入错误处理逻辑。（如直接读本地内存或磁盘）</li>
+</ul>
+</li>
+</ol>
+<p>对于我们的缓存系统，该方法极为关键。系统采用的是做租户模型，承接了公司内部超过500个应用，各个应用公用一个集群。如果因为少数应用的并发流量影响整个系统，将造成极大的灾难。其次不同的应用的关键程度不一，我们需要一个更灵活的资源管理办法来实现服务的等级以及关键时候的降级。</p>
+<h2 id="支持服务分级的流量控制系统">支持服务分级的流量控制系统</h2><p>我们提出了基于流量控制的有限服务使用承诺。应用在申请接入我们服务之前，将需要提供其预期的资源使用量。这包括两个值：</p>
+<ol>
+<li>基本的资源使用量，不管在任何时候，我们的服务都需要提供以上资源(如100w QPS，1w连接，1GB流量)。</li>
+<li>最大资源使用量(如150W QPS, 2w连接)，当客户资源使用量超过该值时，我们将限制其资源使用。</li>
+</ol>
+<p>在提供上述全局维度的服务承诺同时，还限制了单机维度的资源使用(如单机5w QPS，1000连接)。</p>
+<p>对于单机维度的限流，它的实现较简单，统计实例级别实时的资源的访问后，计算出流控状态，定时推送给客户端即可，这里不做过多阐述，主要介绍实例维度的限流。</p>
+<p>实例维度的限流，是指在集群层面限制单个应用的整体的资源损耗。由于我们缓存服务采用的是多租户模型，应用的数据分散在集群中多个服务器中，其架构如下图。<br><img src="/image/flow_control_architecture.png" alt="系统整体架构图">。<br>为了统计应用的全局的资源访问信息，数据服务器将各个应用消耗的资源信息统一汇聚到Collector服务器。</p>
+<p>Collector汇总后，推送需要限流的实例给数据服务器，接着数据服务器收到后向客户端发出限流命令。<br>客户端会根据限流命令来以一定概率直接反馈错误，达到限流的效果。</p>
+<p>ConfigServer是元数据节点，负责存储提前协商好的资源使用信息，并定时推送该信息给Collector。当临时需要对服务进行降级时，也是通过向ConfigServer发出请求，实现临时限流。</p>
+<h3 id="流量控制系统的具体实现">流量控制系统的具体实现</h3><h4 id="Collector实现">Collector实现</h4><p>在收集端Collector负责汇总和计算客户端的流控状态。我们将提前会为每个应用设置事先约定的低水位和高水位阈值在Collector数据库中。Collector通过该阈值来控制实例限流的状态。</p>
+<p>每个实例限流有三种状态：Up, Keep, Down。当超过高水位线开始发出限流指令，并设置状态为Up。当处于低水位线和高水位线之间时，将设置为Keep，低于低水位线时为Down。Collector将定时推送实例的流控状态。</p>
+<ul>
+<li>高可用<br>由于Collector在限流系统中处于核心地位，为了保证其高可用，每个集群启用两台彼此不交互的Collector。<br>每次实例将访问流量推送给两个Collector，它们都会进行计算，并推送限流结果。数据服务器收到任意一个限流结果，都会进行流控。</li>
+</ul>
+<h4 id="客户端实现">客户端实现</h4><p>在客户端，客户会维护一个限流窗口值Threshold，并根据服务器推送的限流状态，来调整该值。其具体的计算方式如下：<br>初始时该窗口值为0。当收到服务器Up限流命令时，会提高限流值。Keep时，保持该值。Down则降低限流值。其公式为：<br><figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Threshold = Threshold + UP_FACTOR*(MAX_THRESHOLD-Threshold)&#10;Threshold = Threshold + DOWN_FACTOR*Threashold</span><br></pre></td></tr></table></figure></p>
+<p>计算出该值后，在每次访问时，都会首先random(0, MAX_THRESHOLD)的值，来与当前Threshold值进行比较，如果低于它则直接返回错误。</p>
+<h4 id="线上运行效果">线上运行效果</h4><p>在实际运行中我们设置上下因子为0.25，MAX_THRESHOLD为1000。通过服务端和客户端相结合的方式，我们实例资源使用量处于低水位线到高水位线之间的效果，真实数据如下图：<br><img src="/image/flow_control_result.png" alt="流量控制效果图"></p>
+<h1 id="延伸阅读">延伸阅读</h1><ol>
+<li><a href="http://www.infoq.com/cn/articles/taobao-tair" target="_blank" rel="external">淘宝开源Key/Value结构数据存储系统Tair技术剖析</a></li>
+<li><a href="http://coolshell.cn/articles/6470.html" target="_blank" rel="external">由12306.cn谈谈网站性能技术</a></li>
+<li><a href="http://www.infoq.com/cn/presentations/mobile-Internet-massive-access-system-design" target="_blank" rel="external">移动互联网海量访问系统设计</a></li>
+</ol>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://yoursite.com/2015/11/13/11tech_traffic_control/" data-id="cihfwqb3a0002rnjdz7bqwgu8" class="article-share-link">分享到</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/system/">system</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2015/11/15/11tech_local_cache/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">上一篇</strong>
+      <div class="article-nav-title">
+        
+          分布式缓存服务如何应对双11-热点Key问题
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2015/09/30/git-undo/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">下一篇</strong>
+      <div class="article-nav-title">git撤销</div>
+    </a>
+  
+</nav>
+
+
+  
+</article>
+
+
+</section>
+      
+        <aside id="sidebar">
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">最新文章</h3>
+    <div class="widget">
+      <ul id="recent-post" class="no-thumbnail">
+        
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category"></p>
+              <p class="item-title"><a href="/2015/11/15/11tech_local_cache/" class="title">分布式缓存服务如何应对双11-热点Key问题</a></p>
+              <p class="item-date"><time datetime="2015-11-15T11:03:44.000Z" itemprop="datePublished">2015-11-15</time></p>
+            </div>
+          </li>
+        
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category"></p>
+              <p class="item-title"><a href="/2015/11/13/11tech_traffic_control/" class="title">分布式缓存服务如何应对双11-流量突增问题</a></p>
+              <p class="item-date"><time datetime="2015-11-13T13:03:44.000Z" itemprop="datePublished">2015-11-13</time></p>
+            </div>
+          </li>
+        
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category"></p>
+              <p class="item-title"><a href="/2015/09/30/git-undo/" class="title">git撤销</a></p>
+              <p class="item-date"><time datetime="2015-09-30T13:05:59.000Z" itemprop="datePublished">2015-09-30</time></p>
+            </div>
+          </li>
+        
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category"></p>
+              <p class="item-title"><a href="/2015/09/27/pytest-fixture/" class="title">pytest fixture</a></p>
+              <p class="item-date"><time datetime="2015-09-27T01:02:29.000Z" itemprop="datePublished">2015-09-27</time></p>
+            </div>
+          </li>
+        
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category"></p>
+              <p class="item-title"><a href="/2015/09/16/ssh/" class="title">ssh config</a></p>
+              <p class="item-date"><time datetime="2015-09-16T11:20:16.000Z" itemprop="datePublished">2015-09-16</time></p>
+            </div>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+    
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">标签</h3>
+    <div class="widget">
+      <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/algorithm/">algorithm</a><span class="tag-list-count">14</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/life/">life</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/system/">system</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tools/">tools</a><span class="tag-list-count">3</span></li></ul>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">归档</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/11/">November 2015</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/09/">September 2015</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/08/">August 2015</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/06/">June 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/05/">May 2015</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/04/">April 2015</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/03/">March 2015</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/02/">February 2015</a><span class="archive-list-count">12</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/01/">January 2015</a><span class="archive-list-count">5</span></li></ul>
+    </div>
+  </div>
+
+  
+  <div id="toTop" class="fa fa-chevron-up"></div>
+</aside>
+      
+    </div>
+    <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      &copy; 2015 Zhe Li<br>
+      Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>. Theme by <a href="http://github.com/ppoffice">PPOffice</a>
+    </div>
+  </div>
+</footer>
+    
+
+
+
+ <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+
+
+
+
+  <link rel="stylesheet" href="/fancybox/jquery.fancybox.css" type="text/css">
+  <script src="/fancybox/jquery.fancybox.pack.js" type="text/javascript"></script>
+
+
+<script src="/js/script.js" type="text/javascript"></script>
+
+  </div>
+</body>
+</html>

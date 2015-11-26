@@ -77,6 +77,69 @@
     <div class="outer">
       
       <section id="main">
+      <article id="post-tree-encode" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-inner">
+    
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2015/01/20/tree-encode/">树的编码</a>
+    </h1>
+  
+
+        <div class="article-meta">
+          
+  <div class="article-date">
+    <i class="fa fa-calendar"></i>
+    <a href="/2015/01/20/tree-encode/">
+      <time datetime="2015-01-20T05:02:34.000Z" itemprop="datePublished">2015-01-20</time>
+    </a>
+  </div>
+
+
+          
+        </div>
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+                
+        <p>#二叉树<br>根据二叉树的性质可以存在不同的编码方式</p>
+<ol>
+<li><p>完全二叉树 (Complete Binary Tree)<br>树除了最后一层，每一层的节点都是满的。按照层次遍历，输出各个节点即可。在解码时，检查层节点是否是满的。如果不是，说明是最后一层。</p>
+<blockquote>
+<p>顺道提一下，如何判断一颗树是完全二叉树呢？<br>可利用每层节点都是满的性质，采用层次遍历，将每一节点的左右孩子都存在队列中。一旦出现为空的节点，其后的所有节点也一定都是空的.</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">queue = deque(root)&#10;while queue and queue[0] not None:&#10;    node = queue.popleft()&#10;    queue.append(node.left)&#10;    queue.append(node.right)&#10;while queue and queue[-1] is None:&#10;    queue.popleft()&#10;return not queue</span><br></pre></td></tr></table></figure>
+</blockquote>
+</li>
+<li><p>二叉搜索树<br>由于二叉搜索树中序遍历的值是有序的。我们知道，对于任意二叉树，可使用中序和(前序&amp;后续)任意一种，即可完成解码。<br>从而在编码时，只需编码前序或者后续任意一种即可。<br>解码时，通过preorder首元素进行二分，递归建立树，如果预先处理next数组，复杂度为O(n)<br>代码可参考：</p>
+</li>
+<li>满二叉树(Full Tree)<br>每个节点只有0或2个孩子。采用前序遍历，并用特殊符号标记是否存在孩子即可，和后续的普通二叉树方法类似。</li>
+<li>普通二叉树<br>可以采用任意一种遍历方式(前中后)，使用 # 标记空孩子，空格’ ‘隔开各个节点。解码时，需要注意 # 标记的空孩子。<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"># use preorder travase to visit the tree&#10;# mark NULL node as #, space &#39;_&#39; to seperate each node&#10;#        5&#10;#    3      4&#10;#  1   6       7&#10;#&#10;# &#32534;&#30721;&#32467;&#26524;&#20026;: 5 3 1 # # 6 # # 4 # 7 # #&#10;def encode(node):&#10;    if not node:&#10;        return &#39;# &#39;&#10;    s = str(node.val) + &#39; &#39;&#10;    s += encode(node.left)&#10;    return s+encode(node.right)&#10;&#10;def decode(s, i):&#10;    if i[0] == len(s):&#10;        return None&#10;    space_idx = s.find(&#39; &#39;, i[0])&#10;    val = s[i[0]:space_idx]&#10;    i[0] = space_idx+1&#10;    if val == &#39;#&#39;:&#10;        return None&#10;    root = TreeNode(val)&#10;    root.left = decode(s, i)&#10;    root.right = decode(s, i)&#10;    return root</span><br></pre></td></tr></table></figure>
+</li>
+</ol>
+<p>此种方式对于空节点较少的情形较好，对于空节点较多的场景，可以进行优化。<br>使用特殊字符 ! 标记节点存在孩子， 当不存在孩子时，什么也不用做。<br>如果只存在一个孩子，另外一个孩子仍然需要使用#标记。<br>参考之前给出的树的例子，编码长度大幅减少。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"># use preorder travase to visit the tree&#10;# mark NULL node as #, space &#39;_&#39; to seperate each node&#10;# if node has childs, use !&#10;#        5&#10;#    3      4&#10;#  1   6       7&#10;#&#10;# &#32534;&#30721;&#32467;&#26524;&#20026; 5 ! 3 ! 1 6 4 ! # 7&#10;def encode2(node):&#10;    if not node:&#10;        return &#39;# &#39;&#10;    s = str(node.val) + &#39; &#39;&#10;    if node.left or node.right:&#10;        s += &#39;!&#39;&#10;        s += encode2(node.left)&#10;        s += encode2(node.right)&#10;    return s&#10;&#10;&#10;def decode2(s, i):&#10;    if i[0] == len(s):&#10;        return None&#10;    space_idx = s.find(&#39; &#39;, i[0])&#10;    val = s[i[0]:space_idx]&#10;    i[0] = space_idx+1&#10;    if val == &#39;#&#39;:&#10;        return None&#10;    root = TreeNode(val)&#10;    if i[0] &#60; len(s) and s[i[0]] == &#39;!&#39;:&#10;        i[0] += 1&#10;        root.left = decode2(s, i)&#10;        root.right = decode2(s, i)&#10;    return root</span><br></pre></td></tr></table></figure></p>
+<p>#多叉树<br>编码方式和二叉树类似，可采用前序遍历，递归创建，使用#标记子节点结束。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">def encode3(node):&#10;    if not node:&#10;        return &#34;&#34;&#10;    s = str(node.val)+&#39; &#39;&#10;    for child in node.children:&#10;        s += encode3(child)&#10;    s += &#39;#&#39;&#10;    return s&#10;&#10;&#10;def decode3(s, i):&#10;    if i[0] == len(s):&#10;        return None&#10;    space_idx = s.find(&#39; &#39;, i[0])&#10;    val = s[i[0]:space_idx]&#10;    node = MultiTree(val)&#10;    i[0] = space_idx+1&#10;    while i[0] &#60; len(s) and s[i[0]] != &#39;#&#39;:&#10;        node.children.append(decode3(s, i))&#10;    i[0] += 1  # mark&#10;    return node</span><br></pre></td></tr></table></figure></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://yoursite.com/2015/01/20/tree-encode/" data-id="cih0i58jc0008hqw4sywbfmr0" class="article-share-link">分享到</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/algorithm/">algorithm</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+    
       <article id="post-array" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-inner">
     
@@ -206,8 +269,17 @@
             
             <div class="item-inner">
               <p class="item-category"></p>
-              <p class="item-title"><a href="/2015/11/15/11tech/" class="title">缓存服务如何应对双11</a></p>
+              <p class="item-title"><a href="/2015/11/15/11tech_local_cache/" class="title">分布式缓存服务如何应对双11-热点Key问题</a></p>
               <p class="item-date"><time datetime="2015-11-15T11:03:44.000Z" itemprop="datePublished">2015-11-15</time></p>
+            </div>
+          </li>
+        
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category"></p>
+              <p class="item-title"><a href="/2015/11/13/11tech_traffic_control/" class="title">分布式缓存服务如何应对双11-流量突增问题</a></p>
+              <p class="item-date"><time datetime="2015-11-13T13:03:44.000Z" itemprop="datePublished">2015-11-13</time></p>
             </div>
           </li>
         
@@ -238,15 +310,6 @@
             </div>
           </li>
         
-          <li>
-            
-            <div class="item-inner">
-              <p class="item-category"></p>
-              <p class="item-title"><a href="/2015/08/29/traffic-control/" class="title">云服务的流控设计</a></p>
-              <p class="item-date"><time datetime="2015-08-29T08:02:34.000Z" itemprop="datePublished">2015-08-29</time></p>
-            </div>
-          </li>
-        
       </ul>
     </div>
   </div>
@@ -258,7 +321,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">标签</h3>
     <div class="widget">
-      <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/algorithm/">algorithm</a><span class="tag-list-count">14</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/life/">life</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/system/">system</a><span class="tag-list-count">12</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tools/">tools</a><span class="tag-list-count">3</span></li></ul>
+      <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/algorithm/">algorithm</a><span class="tag-list-count">14</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/life/">life</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/system/">system</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tools/">tools</a><span class="tag-list-count">3</span></li></ul>
     </div>
   </div>
 
@@ -267,7 +330,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">归档</h3>
     <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/11/">November 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/09/">September 2015</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/08/">August 2015</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/06/">June 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/05/">May 2015</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/04/">April 2015</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/03/">March 2015</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/02/">February 2015</a><span class="archive-list-count">12</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/01/">January 2015</a><span class="archive-list-count">5</span></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/11/">November 2015</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/09/">September 2015</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/08/">August 2015</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/06/">June 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/05/">May 2015</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/04/">April 2015</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/03/">March 2015</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/02/">February 2015</a><span class="archive-list-count">12</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/01/">January 2015</a><span class="archive-list-count">5</span></li></ul>
     </div>
   </div>
 

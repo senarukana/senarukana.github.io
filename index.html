@@ -77,7 +77,7 @@
     <div class="outer">
       
       <section id="main">
-      <article id="post-11tech" class="article article-type-post" itemscope itemprop="blogPost">
+      <article id="post-11tech_local_cache" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-inner">
     
     
@@ -86,7 +86,7 @@
         
   
     <h1 itemprop="name">
-      <a class="article-title" href="/2015/11/15/11tech/">缓存服务如何应对双11</a>
+      <a class="article-title" href="/2015/11/15/11tech_local_cache/">分布式缓存服务如何应对双11-热点Key问题</a>
     </h1>
   
 
@@ -94,7 +94,7 @@
           
   <div class="article-date">
     <i class="fa fa-calendar"></i>
-    <a href="/2015/11/15/11tech/">
+    <a href="/2015/11/15/11tech_local_cache/">
       <time datetime="2015-11-15T11:03:44.000Z" itemprop="datePublished">2015-11-15</time>
     </a>
   </div>
@@ -106,17 +106,129 @@
     
     <div class="article-entry" itemprop="articleBody">
       
-        <p>每年一度的双11已经过完，相比往年不同今年有幸参加了双11全过程。我所在的缓存团队承担着双11很重要的职责，负责存储商品库存、全站用户Session、购物车等峰值QPS上千万级别的大业务。值得骄傲的是，团队的服务除了在0点时极短时间内对购物车和无线业务实施了限流，整个过程异常稳定。<br>关于如何架构亿万级别QPS系统或者秒杀系统，之前在网络上已经讨论的很多，主要涉及负载均衡、CDN、缓存、静态化、降级、限流、数据压缩等。但那些讨论往往面太广，趁着现在双11余韵还在，本篇文章将站在我们的键值存储服务Tair系统的角度来阐述，我们是如何应对双11的。</p>
-<h1 id="技术">技术</h1><p>对于双11这种大型促销，相比平时有超过10倍的流量压力，对于服务器将产生很大的压力和造成各种问题。体现在我们的缓存业务，主要涉及到两个，流量突增问题，热点Key问题。<br>
-        
-          <p class="article-more-link">
-            <a href="/2015/11/15/11tech/#more">Read More</a>
-          </p>
-        
+                
+        <h1 id="热点Key问题">热点Key问题</h1><p>大促期间的另一个常见问题是Key热点问题。部分Key(可能对应用与某个促销商品)集中于同一机器量，使得所有流量涌向同一机器，成为系统的瓶颈。该问题的挑战在于它无法通过增加机器容量来解决。</p>
+<p>解决该问题的办法有很多，最有效果的方式是在业务层对热点数据进行切分。但对于有些情况，如小米双11促销，单台小米机型QPS超过百万，业务无法进行切分。</p>
+<p>该问题最常见的解决办法是多写策略。如搭建备用集群，写的时候双写或者异步同步，读的时候就相应的能从多个地方读。但上述方案对于双11这种读、写压力都很大的场景，还是略显不足。</p>
+<p>还有就是通过牺牲数据一致性来提升访问效率。一种是针对读的客户端缓存，另一种是针对写的由Facebook Memcached<a href="http://www.cs.utah.edu/~stutsman/cs6963/public/papers/memcached.pdf" target="_blank" rel="external">论文</a>中提出Lease租约策略。</p>
+<p>客户端缓存的思想是将部分热点内存缓存在客户端，而避免每次访问都去访问服务器。其缺点是本地缓存可能不是最新的。<br>Lease租约策略则要求每次写key时，都需要事先获得该Key的Token。这能有两个用途，一方面是避免写后读问题，这里暂时不谈。另一方面服务器可以通过控制连接在每秒获取Key的频率达到限流的作用，避免写入过多，造成惊群效应。</p>
+<h2 id="设计">设计</h2><p>通过对我们承接的业务进行分析，在促销期间应用对于数据一致性的需求要远低于可用性的需求，他们能容忍数据在短时间内不准确。依据该原则，我们选择客户端缓存办法。<br>客户端缓存方案包含两个部分，服务端热点统计和客户端本地缓存。<br>服务端热点统计是用于探测服务当前热点，客户端缓存是将服务端的热点数据存于本地，待下次访问时直接返回。</p>
+<h2 id="服务端热点统计">服务端热点统计</h2><p>服务端热点Key统计的办法有很多，最常见的办法是直接抽样N次请求取出Topk让客户端进行缓存，但该方法存在一个很大的问题：Topk的准确性，依赖于抽样的次数。较少的抽样次数，可能导致热点key不准确，且频繁发生变化。而较多的抽样，可能提升热点key探测花费的时间、导致热点已过，同时还提高了内存占用。<br>我们需要一个自适应的抽样办法，能在热点出现时及时发现。这里我们提出了一种双层抽样办法。它分为采样阶段和定位阶段来探测热点key，最后定时反馈热点key给客户端。其具体流程如下。<br><img src="/image/hot_key_process.png" alt="hot_key_sample"></p>
+<h3 id="采样阶段">采样阶段</h3><p>我们首先将数据空间划分成1024个桶，记录每个桶的命中次数。为了提升性能，每次采样，各个线程都是采用try_lock的方式获取锁，只有拿到锁的线程才会进行统计，否则直接放行。<br>我们采样一个较小的样本N，通过采样桶的<em>标准差</em>(反映了数据的离散程度)来确定是否存在热点。其具体的判断标准为，当标准差大于整体均值的K倍时，我们认为存在热点。此时选取命中次数最多的桶作为候选桶，进入定位阶段。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">if Deviation &#62; Avg(Count) * K:&#10;    Candidate = MAX&#123;Count i&#125;</span><br></pre></td></tr></table></figure></p>
+<h3 id="定位阶段">定位阶段</h3><p>当定位到热桶后，我们对该桶里命中的Key继续进行采样，采样M次(M &lt; N)。当采样完成后，将选出大于T次的key作为热点key，放入服务器的热点Key LRUCache中，清0进行下一次定位。<br>在程序的运行过程中，采样阶段和定位阶段是同时进行的，当采样N次结束后，发现热点Key发生了变化，将会使得定位阶段重新开始。</p>
+<h3 id="线上运行效果">线上运行效果</h3><p>在实际过程中，我们选取N=10000，M=1000，K=1.5，T=100。</p>
+<p>两次采样的方法，大幅减少了抽样次数，当出现热点时，我们通常能在2*N次采样即可确定热点，占用的内存资源也较少。最后对于我们的系统，热点key的探测还要结合迁移功能。当检测到某个热点key时，在使用客户端缓存的同时，我们可能还希望能将该热点迁移到其它机器。上述热点key的办法，能有效帮助我们定位到一个热点桶，当发现桶热点持续时，我们可以发出迁移指令，迁移或者复制热点数据到其它机器。</p>
+<h2 id="客户端的热点key缓存">客户端的热点key缓存</h2><p>开启了热点key缓存的客户端将定时向服务器咨询热点的key列表，并缓存在本地的缓存中。对于每次读请求，将首先检查key是否存在于本地缓存中，如果存在则直接返回。其具体流程如下：</p>
+<p>为了更好的理解这个过程，有一下几个要点需要注意：</p>
+<ul>
+<li><p>1.本地缓存与服务器间如何同步<br>每次写操作强制删除本地cache的key，读操作时，更新后端服务器的值到本地cache。</p>
+</li>
+<li><p>2.本地缓存数据淘汰策略<br>本地缓存包含两种淘汰策略，分别是根据数据量大小的逐出的策略和根据时间的过期淘汰策略。</p>
+</li>
+<li>容量逐出策略：它是为了限制本地缓存占用的内存大小。当缓存内存超过该阈值时，会采用LRU策略逐出。在实际运行中，客户端设置的本地容量通常较小，默认只能存30个key，服务端稍大一些为100个。LRU的实现我们用的是google的<a href="https://github.com/ben-manes/concurrentlinkedhashmap" target="_blank" rel="external">ConcurrentLinkedHashMap</a>，它对于多线程更新时相比LinkedHashMap性能更好，读写性能提升20%。它更新LRU链表是异步的，且合并了多次读操作需要的更新。</li>
+<li><p>过期淘汰策略：它是为了限制服务器与客户端之间的数据不一致的窗口。当客户端向服务端读热点key操作成功后，在添加入本地缓存表的同时，会设置一个在过期时间(默认30ms)。一旦过期，客户端将需要重新从服务端获取该key值。</p>
+</li>
+<li><p>3.防止击穿<br>应用使用客户端访问我们服务时时，大多是多线程访问。试想当多个线程发现某个key的存活超过过期时间时，会做什么处理呢？会有大量请求击穿本地缓存，同时访问后端服务器，如下图。<br><img src="/image/hot_key_penetration.png" alt="热点key穿透"><br>为了解决这样的击穿问题，这里加了一个过期时间续期的操作。当多个线程并发读取某个key1时，第一个竞争到锁的线程会判断key的过期时间，如果已经过期，则返回null，并对该key续期（即延长过期时间），由于返回的是null，该线程会击穿Localcache继续向server发起请求，并更新本地Localcache。其他线程访问key时，已经是续期之后，这些线程的访问该key时，就不会发现已经过期，读到的是老的value，等到第一个线程完成server端key-value到Localcache的更新结束后，所有线程都将读到新value。这样的好处是不会在某个key过期时间一到就击穿Localcache，并大量的访问server，对server造成压力。<br>如图，只有thread-1会击穿Localcache，其他线程拿到的要么是老的value，要么是最新value。</p>
+</li>
+<li><p>4.拷贝机制<br>当客户端需要将获取的热点key对应的value写入到本地缓存时，很多场景需要深拷贝，以防止同一个对象在本地缓存之外被修改，从而造成本地缓存中的value与后端server的value不一致。<br>但是深拷贝操作本身很耗费CPU，如果每次往本地缓存中写value都需要clone的话，非常影响性能。并且我们观察发现，大部分用户在一段时间内访问一个key的机会只有一次，比如获取一个商品的所有规格信息，将需要一个for迭代循环，每次访问不同(key + i)，就需要把每个key对应的value，拷贝一次再写入本地缓存中。<br>为了提升拷贝效率，我们在第一次读取到热点key的值时，只把null当做值写入缓存。只有当本地缓存中该key还有第二次机会被访问时，客户端拿到null就会重新去服务器读最新数据，这时我们才真实的将读到的value并深拷贝到本地缓存中。因为我们认为该key有第二次读到就会有更多次机会被读到。</p>
+</li>
+</ul>
+<h1 id="延伸阅读">延伸阅读</h1><ol>
+<li><a href="http://www.cs.utah.edu/~stutsman/cs6963/public/papers/memcached.pdf" target="_blank" rel="external">Scaling Memcache at Facebook</a></li>
+<li><a href="http://highscalability.com/ehcache-java-distributed-cache" target="_blank" rel="external">Ehcache - A Java Distributed Cache</a></li>
+<li><a href="https://guava-libraries.googlecode.com/files/ConcurrentCachingAtGoogle.pdf" target="_blank" rel="external">Concurrent Cache At Google</a></li>
+<li><a href="https://code.google.com/p/concurrentlinkedhashmap/wiki/Design" target="_blank" rel="external">ConcurrentLinkedhashmap Design</a></li>
+<li><a href="http://highscalability.com/blog/2014/7/16/10-program-busting-caching-mistakes.html" target="_blank" rel="external">10 Program Busting Caching Mistakes</a></li>
+</ol>
+
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://yoursite.com/2015/11/15/11tech/" data-id="cih0k0avb0000rcw4386w5is3" class="article-share-link">分享到</a>
+      <a data-url="http://yoursite.com/2015/11/15/11tech_local_cache/" data-id="cihfwqb1j0000rnjdzneleewn" class="article-share-link">分享到</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/system/">system</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+    
+      <article id="post-11tech_traffic_control" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-inner">
+    
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2015/11/13/11tech_traffic_control/">分布式缓存服务如何应对双11-流量突增问题</a>
+    </h1>
+  
+
+        <div class="article-meta">
+          
+  <div class="article-date">
+    <i class="fa fa-calendar"></i>
+    <a href="/2015/11/13/11tech_traffic_control/">
+      <time datetime="2015-11-13T13:03:44.000Z" itemprop="datePublished">2015-11-13</time>
+    </a>
+  </div>
+
+
+          
+        </div>
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+                
+        <p>每年一度的双11已经过完，相比往年不同今年有幸参加了双11全过程。我所在的缓存团队承担着双11很重要的职责，负责存储商品库存、全站用户Session、购物车等峰值QPS上千万级别的大业务。值得骄傲的是，团队的服务除了在0点时极短时间内对购物车和无线业务实施了限流，整个过程异常稳定。<br>关于如何架构亿万级别QPS系统或者秒杀系统，之前在网络上已经讨论的很多，主要涉及负载均衡、CDN、缓存、静态化、降级、限流、数据压缩等。但那些讨论往往面太广，趁着现在双11余韵还在，本篇文章将站在我们的键值存储服务<a href="http://www.infoq.com/cn/articles/taobao-tair" target="_blank" rel="external">Tair</a>系统的角度来阐述，我们是如何应对双11的。</p>
+<h1 id="流量突增问题">流量突增问题</h1><p>大促最明显的现象是在短时间内有海量并发，造成服务器过载，资源使用率急剧提升，服务响应变慢，甚至有宕机风险。<br>解决办法分大致分为两类，提前预防，案发时应急处理。</p>
+<p>提前预防是在大促发生之前做的准备工作。它依赖于客户在事先对其使用资源的评估，一次好的预估往往比临时的应急处理方案要更有用的多。通常在大促发生之前，我们通过多次对促销时流量的模拟，反复调整机器的数量，最后设置一个合理的值，这里主要考验的是对系统和用户行为的了解。</p>
+<p>但通常我们很难保证业务方对于资源的使用有着准确的预估，当超过预期的流量导入到系统的时候，系统需要应急办法来处理。<br>对于我们缓存系统，应急办法主要涉及两种：</p>
+<ol>
+<li>集群的扩容<br>通过增加机器的方式，来均摊负载。该办法思路简单，但在实践过程中，如果直接使用，效果往往很差。因为在机器负载很高的时候，我们执行的扩容操作可能会进一步恶化系统性能。针对我们缓存系统，在大促时命中率往往超过99.99%，贸然的集群扩容，将极有可能击穿后端存储系统。<br>为了解决这个问题，我们在扩容之后会事先对集群进行预热，只有当命中率达到预期后才执行扩容。</li>
+<li><p>流量控制系统<br>当远超出预期的请求到达服务时我们需要一种机器资源的保护策略：流量控制。在海量并发请求到来时及时返回错误告知客户端减少请求发送数量，让客户端直接收到返回错误，这样的收益来自两个方面：</p>
+<ul>
+<li>1.避免服务器过载。如过长请求排队造成的无谓的CPU、内存、网络等性能损失。</li>
+<li>2.客户端快速收到错误，使其进入错误处理逻辑。（如直接读本地内存或磁盘）</li>
+</ul>
+</li>
+</ol>
+<p>对于我们的缓存系统，该方法极为关键。系统采用的是做租户模型，承接了公司内部超过500个应用，各个应用公用一个集群。如果因为少数应用的并发流量影响整个系统，将造成极大的灾难。其次不同的应用的关键程度不一，我们需要一个更灵活的资源管理办法来实现服务的等级以及关键时候的降级。</p>
+<h2 id="支持服务分级的流量控制系统">支持服务分级的流量控制系统</h2><p>我们提出了基于流量控制的有限服务使用承诺。应用在申请接入我们服务之前，将需要提供其预期的资源使用量。这包括两个值：</p>
+<ol>
+<li>基本的资源使用量，不管在任何时候，我们的服务都需要提供以上资源(如100w QPS，1w连接，1GB流量)。</li>
+<li>最大资源使用量(如150W QPS, 2w连接)，当客户资源使用量超过该值时，我们将限制其资源使用。</li>
+</ol>
+<p>在提供上述全局维度的服务承诺同时，还限制了单机维度的资源使用(如单机5w QPS，1000连接)。</p>
+<p>对于单机维度的限流，它的实现较简单，统计实例级别实时的资源的访问后，计算出流控状态，定时推送给客户端即可，这里不做过多阐述，主要介绍实例维度的限流。</p>
+<p>实例维度的限流，是指在集群层面限制单个应用的整体的资源损耗。由于我们缓存服务采用的是多租户模型，应用的数据分散在集群中多个服务器中，其架构如下图。<br><img src="/image/flow_control_architecture.png" alt="系统整体架构图">。<br>为了统计应用的全局的资源访问信息，数据服务器将各个应用消耗的资源信息统一汇聚到Collector服务器。</p>
+<p>Collector汇总后，推送需要限流的实例给数据服务器，接着数据服务器收到后向客户端发出限流命令。<br>客户端会根据限流命令来以一定概率直接反馈错误，达到限流的效果。</p>
+<p>ConfigServer是元数据节点，负责存储提前协商好的资源使用信息，并定时推送该信息给Collector。当临时需要对服务进行降级时，也是通过向ConfigServer发出请求，实现临时限流。</p>
+<h3 id="流量控制系统的具体实现">流量控制系统的具体实现</h3><h4 id="Collector实现">Collector实现</h4><p>在收集端Collector负责汇总和计算客户端的流控状态。我们将提前会为每个应用设置事先约定的低水位和高水位阈值在Collector数据库中。Collector通过该阈值来控制实例限流的状态。</p>
+<p>每个实例限流有三种状态：Up, Keep, Down。当超过高水位线开始发出限流指令，并设置状态为Up。当处于低水位线和高水位线之间时，将设置为Keep，低于低水位线时为Down。Collector将定时推送实例的流控状态。</p>
+<ul>
+<li>高可用<br>由于Collector在限流系统中处于核心地位，为了保证其高可用，每个集群启用两台彼此不交互的Collector。<br>每次实例将访问流量推送给两个Collector，它们都会进行计算，并推送限流结果。数据服务器收到任意一个限流结果，都会进行流控。</li>
+</ul>
+<h4 id="客户端实现">客户端实现</h4><p>在客户端，客户会维护一个限流窗口值Threshold，并根据服务器推送的限流状态，来调整该值。其具体的计算方式如下：<br>初始时该窗口值为0。当收到服务器Up限流命令时，会提高限流值。Keep时，保持该值。Down则降低限流值。其公式为：<br><figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Threshold = Threshold + UP_FACTOR*(MAX_THRESHOLD-Threshold)&#10;Threshold = Threshold + DOWN_FACTOR*Threashold</span><br></pre></td></tr></table></figure></p>
+<p>计算出该值后，在每次访问时，都会首先random(0, MAX_THRESHOLD)的值，来与当前Threshold值进行比较，如果低于它则直接返回错误。</p>
+<h4 id="线上运行效果">线上运行效果</h4><p>在实际运行中我们设置上下因子为0.25，MAX_THRESHOLD为1000。通过服务端和客户端相结合的方式，我们实例资源使用量处于低水位线到高水位线之间的效果，真实数据如下图：<br><img src="/image/flow_control_result.png" alt="流量控制效果图"></p>
+<h1 id="延伸阅读">延伸阅读</h1><ol>
+<li><a href="http://www.infoq.com/cn/articles/taobao-tair" target="_blank" rel="external">淘宝开源Key/Value结构数据存储系统Tair技术剖析</a></li>
+<li><a href="http://coolshell.cn/articles/6470.html" target="_blank" rel="external">由12306.cn谈谈网站性能技术</a></li>
+<li><a href="http://www.infoq.com/cn/presentations/mobile-Internet-massive-access-system-design" target="_blank" rel="external">移动互联网海量访问系统设计</a></li>
+</ol>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://yoursite.com/2015/11/13/11tech_traffic_control/" data-id="cihfwqb3a0002rnjdz7bqwgu8" class="article-share-link">分享到</a>
       
       
   <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/system/">system</a></li></ul>
@@ -647,59 +759,6 @@
 
 
     
-      <article id="post-nsq" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-inner">
-    
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2015/05/18/nsq/">nsq</a>
-    </h1>
-  
-
-        <div class="article-meta">
-          
-  <div class="article-date">
-    <i class="fa fa-calendar"></i>
-    <a href="/2015/05/18/nsq/">
-      <time datetime="2015-05-18T15:10:11.000Z" itemprop="datePublished">2015-05-18</time>
-    </a>
-  </div>
-
-
-          
-        </div>
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h1 id="简介">简介</h1><p><a href="nsq.io">nsq</a>是一个由go编写的简单，高效消息队列，它的最大特点是无第三方依赖和配置简单易于使用。</p>
-<h1 id="概要">概要</h1><p>和传统消息队列一样，它分为两种角色，生产者和消费者。生产者发布消息到指定的话题Topic中。消费者通过管道Channel来订阅话题中数据。每个话题通常被多个管道绑定。多个消费者绑定同样的管道在正常情况下只会接收一份数据。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">                                                    / metrics-consumer1&#10;                                channel[metrics]   -  metrics-consumer2&#10;                            /&#10;producer -&#62; topic[clicks]   -   channel[spam_analyzer] - spam-consumer&#10;                            \   channel[archive]   -  archive-consumer&#10;                                                    \ archive-consumer2</span><br></pre></td></tr></table></figure></p>
-<p>系统由三个子系统构成：控制服务器nsqlookupd， 数据服务器nsqd 和 管理服务器nsqadmin。<br>
-        
-          <p class="article-more-link">
-            <a href="/2015/05/18/nsq/#more">Read More</a>
-          </p>
-        
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://yoursite.com/2015/05/18/nsq/" data-id="cih0i58k7000yhqw4vlxca194" class="article-share-link">分享到</a>
-      
-      
-  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/system/">system</a></li></ul>
-
-    </footer>
-  </div>
-  
-</article>
-
-
-
-    
       <nav id="page-nav">
         <span class="page-number current">1</span><a class="page-number" href="/page/2/">2</a><a class="page-number" href="/page/3/">3</a><a class="page-number" href="/page/4/">4</a><a class="extend next" rel="next" href="/page/2/">下一页 &raquo;</a>
       </nav>
@@ -717,8 +776,17 @@
             
             <div class="item-inner">
               <p class="item-category"></p>
-              <p class="item-title"><a href="/2015/11/15/11tech/" class="title">缓存服务如何应对双11</a></p>
+              <p class="item-title"><a href="/2015/11/15/11tech_local_cache/" class="title">分布式缓存服务如何应对双11-热点Key问题</a></p>
               <p class="item-date"><time datetime="2015-11-15T11:03:44.000Z" itemprop="datePublished">2015-11-15</time></p>
+            </div>
+          </li>
+        
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category"></p>
+              <p class="item-title"><a href="/2015/11/13/11tech_traffic_control/" class="title">分布式缓存服务如何应对双11-流量突增问题</a></p>
+              <p class="item-date"><time datetime="2015-11-13T13:03:44.000Z" itemprop="datePublished">2015-11-13</time></p>
             </div>
           </li>
         
@@ -749,15 +817,6 @@
             </div>
           </li>
         
-          <li>
-            
-            <div class="item-inner">
-              <p class="item-category"></p>
-              <p class="item-title"><a href="/2015/08/29/traffic-control/" class="title">云服务的流控设计</a></p>
-              <p class="item-date"><time datetime="2015-08-29T08:02:34.000Z" itemprop="datePublished">2015-08-29</time></p>
-            </div>
-          </li>
-        
       </ul>
     </div>
   </div>
@@ -769,7 +828,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">标签</h3>
     <div class="widget">
-      <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/algorithm/">algorithm</a><span class="tag-list-count">14</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/life/">life</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/system/">system</a><span class="tag-list-count">12</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tools/">tools</a><span class="tag-list-count">3</span></li></ul>
+      <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/algorithm/">algorithm</a><span class="tag-list-count">14</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/life/">life</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/system/">system</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tools/">tools</a><span class="tag-list-count">3</span></li></ul>
     </div>
   </div>
 
@@ -778,7 +837,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">归档</h3>
     <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/11/">November 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/09/">September 2015</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/08/">August 2015</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/06/">June 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/05/">May 2015</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/04/">April 2015</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/03/">March 2015</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/02/">February 2015</a><span class="archive-list-count">12</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/01/">January 2015</a><span class="archive-list-count">5</span></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/11/">November 2015</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/09/">September 2015</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/08/">August 2015</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/06/">June 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/05/">May 2015</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/04/">April 2015</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/03/">March 2015</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/02/">February 2015</a><span class="archive-list-count">12</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/01/">January 2015</a><span class="archive-list-count">5</span></li></ul>
     </div>
   </div>
 

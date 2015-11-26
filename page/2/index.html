@@ -77,6 +77,59 @@
     <div class="outer">
       
       <section id="main">
+      <article id="post-nsq" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-inner">
+    
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2015/05/18/nsq/">nsq</a>
+    </h1>
+  
+
+        <div class="article-meta">
+          
+  <div class="article-date">
+    <i class="fa fa-calendar"></i>
+    <a href="/2015/05/18/nsq/">
+      <time datetime="2015-05-18T15:10:11.000Z" itemprop="datePublished">2015-05-18</time>
+    </a>
+  </div>
+
+
+          
+        </div>
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h1 id="简介">简介</h1><p><a href="nsq.io">nsq</a>是一个由go编写的简单，高效消息队列，它的最大特点是无第三方依赖和配置简单易于使用。</p>
+<h1 id="概要">概要</h1><p>和传统消息队列一样，它分为两种角色，生产者和消费者。生产者发布消息到指定的话题Topic中。消费者通过管道Channel来订阅话题中数据。每个话题通常被多个管道绑定。多个消费者绑定同样的管道在正常情况下只会接收一份数据。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">                                                    / metrics-consumer1&#10;                                channel[metrics]   -  metrics-consumer2&#10;                            /&#10;producer -&#62; topic[clicks]   -   channel[spam_analyzer] - spam-consumer&#10;                            \   channel[archive]   -  archive-consumer&#10;                                                    \ archive-consumer2</span><br></pre></td></tr></table></figure></p>
+<p>系统由三个子系统构成：控制服务器nsqlookupd， 数据服务器nsqd 和 管理服务器nsqadmin。<br>
+        
+          <p class="article-more-link">
+            <a href="/2015/05/18/nsq/#more">Read More</a>
+          </p>
+        
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://yoursite.com/2015/05/18/nsq/" data-id="cih0i58k7000yhqw4vlxca194" class="article-share-link">分享到</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/system/">system</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+    
       <article id="post-life-of-running" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-inner">
     
@@ -579,67 +632,6 @@
 
 
     
-      <article id="post-logsystem" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-inner">
-    
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2015/02/18/logsystem/">logsystem</a>
-    </h1>
-  
-
-        <div class="article-meta">
-          
-  <div class="article-date">
-    <i class="fa fa-calendar"></i>
-    <a href="/2015/02/18/logsystem/">
-      <time datetime="2015-02-18T05:03:14.000Z" itemprop="datePublished">2015-02-18</time>
-    </a>
-  </div>
-
-
-          
-        </div>
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p>logsystem是一道最近在facebook面试中经常遇到的问题，本文抛砖引玉，介绍我关于该问题的思考。</p>
-<h1 id="需求">需求</h1><p>是用来收集什么日志？ =&gt; 收集手机app的crush记录<br>收集日志的目的? =&gt; 分析crush的原因 =&gt; 最好需要上层的查询分析接口<br>日志的存储时间?永久还是有期限? =&gt; 两年 or 永久?为了估算空间</p>
-<h2 id="数据特点">数据特点</h2><ol>
-<li>Crush收集的记录可能经常会发生变化<br>时间 模块 错误信息 栈信息等</li>
-<li>写明显大于读</li>
-</ol>
-<h2 id="潜在的需求">潜在的需求</h2><ol>
-<li>数据安全性</li>
-<li>日志的汇总</li>
-<li>查询接口</li>
-<li>严重bug通知
-        
-          <p class="article-more-link">
-            <a href="/2015/02/18/logsystem/#more">Read More</a>
-          </p>
-        
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://yoursite.com/2015/02/18/logsystem/" data-id="cih0i58kb0012hqw4om0xlkd7" class="article-share-link">分享到</a>
-      
-      
-  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/system/">system</a></li></ul>
-
-    </footer>
-  </div>
-  
-</article>
-
-
-
-    
       <nav id="page-nav">
         <a class="extend prev" rel="prev" href="/">&laquo; 上一页</a><a class="page-number" href="/">1</a><span class="page-number current">2</span><a class="page-number" href="/page/3/">3</a><a class="page-number" href="/page/4/">4</a><a class="extend next" rel="next" href="/page/3/">下一页 &raquo;</a>
       </nav>
@@ -657,8 +649,17 @@
             
             <div class="item-inner">
               <p class="item-category"></p>
-              <p class="item-title"><a href="/2015/11/15/11tech/" class="title">缓存服务如何应对双11</a></p>
+              <p class="item-title"><a href="/2015/11/15/11tech_local_cache/" class="title">分布式缓存服务如何应对双11-热点Key问题</a></p>
               <p class="item-date"><time datetime="2015-11-15T11:03:44.000Z" itemprop="datePublished">2015-11-15</time></p>
+            </div>
+          </li>
+        
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category"></p>
+              <p class="item-title"><a href="/2015/11/13/11tech_traffic_control/" class="title">分布式缓存服务如何应对双11-流量突增问题</a></p>
+              <p class="item-date"><time datetime="2015-11-13T13:03:44.000Z" itemprop="datePublished">2015-11-13</time></p>
             </div>
           </li>
         
@@ -689,15 +690,6 @@
             </div>
           </li>
         
-          <li>
-            
-            <div class="item-inner">
-              <p class="item-category"></p>
-              <p class="item-title"><a href="/2015/08/29/traffic-control/" class="title">云服务的流控设计</a></p>
-              <p class="item-date"><time datetime="2015-08-29T08:02:34.000Z" itemprop="datePublished">2015-08-29</time></p>
-            </div>
-          </li>
-        
       </ul>
     </div>
   </div>
@@ -709,7 +701,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">标签</h3>
     <div class="widget">
-      <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/algorithm/">algorithm</a><span class="tag-list-count">14</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/life/">life</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/system/">system</a><span class="tag-list-count">12</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tools/">tools</a><span class="tag-list-count">3</span></li></ul>
+      <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/algorithm/">algorithm</a><span class="tag-list-count">14</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/life/">life</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/system/">system</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tools/">tools</a><span class="tag-list-count">3</span></li></ul>
     </div>
   </div>
 
@@ -718,7 +710,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">归档</h3>
     <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/11/">November 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/09/">September 2015</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/08/">August 2015</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/06/">June 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/05/">May 2015</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/04/">April 2015</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/03/">March 2015</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/02/">February 2015</a><span class="archive-list-count">12</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/01/">January 2015</a><span class="archive-list-count">5</span></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/11/">November 2015</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/09/">September 2015</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/08/">August 2015</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/06/">June 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/05/">May 2015</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/04/">April 2015</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/03/">March 2015</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/02/">February 2015</a><span class="archive-list-count">12</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/01/">January 2015</a><span class="archive-list-count">5</span></li></ul>
     </div>
   </div>
 
