@@ -11,12 +11,13 @@
 <meta property="og:url" content="http://yoursite.com/2015/05/22/raft/index.html">
 <meta property="og:site_name" content="Zhe Li's Blog">
 <meta property="og:description" content="简介在分布式系统中，一个经典的问题是如何高效、可靠的保证运行集群中各个节点数据保持一致。Paxos算法是解决该问题中最广为人知的算法，它由Lamport提出，但由于其描述的较为晦涩，同时存在多处省略，在实现过程中往往有很多细节难于处理，在工程中存在许多类似而又不统一的实现。ZooKeeper使用的Zab算法实际上和Paxos存在很多地方的不同。Raft算法是由Stanford教授提出为了帮助学生理">
+<meta property="og:image" content="http://yoursite.com/image/replicate_state_machine.jpg">
 <meta property="og:image" content="http://yoursite.com/image/raft_election.png">
 <meta property="og:image" content="http://yoursite.com/image/raft_data_structure.png">
 <meta property="og:image" content="http://yoursite.com/image/raft_log_append.png">
 <meta property="og:image" content="http://yoursite.com/image/raft_split_brain.png">
 <meta property="og:image" content="http://yoursite.com/image/raft_config_change.png">
-<meta property="og:updated_time" content="2015-11-26T08:04:02.000Z">
+<meta property="og:updated_time" content="2015-11-26T08:08:05.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="raft">
 <meta name="twitter:description" content="简介在分布式系统中，一个经典的问题是如何高效、可靠的保证运行集群中各个节点数据保持一致。Paxos算法是解决该问题中最广为人知的算法，它由Lamport提出，但由于其描述的较为晦涩，同时存在多处省略，在实现过程中往往有很多细节难于处理，在工程中存在许多类似而又不统一的实现。ZooKeeper使用的Zab算法实际上和Paxos存在很多地方的不同。Raft算法是由Stanford教授提出为了帮助学生理">
@@ -112,15 +113,16 @@
     <div class="article-entry" itemprop="articleBody">
       
                 
-        <h1 id="简介">简介</h1><p>在分布式系统中，一个经典的问题是如何高效、可靠的保证运行集群中各个节点数据保持一致。Paxos算法是解决该问题中最广为人知的算法，它由Lamport提出，但由于其描述的较为晦涩，同时存在多处省略，在实现过程中往往有很多细节难于处理，在工程中存在许多类似而又不统一的实现。ZooKeeper使用的Zab算法实际上和Paxos存在很多地方的不同。<br>Raft算法是由Stanford教授提出为了帮助学生理解的同步算法，它和Paxos算法类似，能保证集群数据的强一致性，但它的概念相比Paxos更少，也更便于理解，论文在<a href="">这里</a>，结合youtube上的<a href="">教学视频</a>一同观看效果更佳。<br>本文将简要介绍Raft的原理。</p>
-<h1 id="目标">目标</h1><p>在讲述Raft算法之前，我们首先讨论一致性算法的要求，它包括以下四个方面：</p>
+        <h1 id="简介">简介</h1><p>在分布式系统中，一个经典的问题是如何高效、可靠的保证运行集群中各个节点数据保持一致。Paxos算法是解决该问题中最广为人知的算法，它由Lamport提出，但由于其描述的较为晦涩，同时存在多处省略，在实现过程中往往有很多细节难于处理，在工程中存在许多类似而又不统一的实现。ZooKeeper使用的Zab算法实际上和Paxos存在很多地方的不同。<br>Raft算法是由Stanford教授提出为了帮助学生理解的同步算法，它和Paxos算法类似，能保证集群数据的强一致性，但它的概念相比Paxos更少，也更便于理解，论文在<a href="https://ramcloud.stanford.edu/raft.pdf" target="_blank" rel="external">这里</a>，结合youtube上的<a href="https://www.youtube.com/watch?v=JEpsBg0AO6o" target="_blank" rel="external">教学视频</a>一同观看效果更佳。</p>
+<h2 id="现状">现状</h2><p>当前已经存在许多知名开源系统基于Raft，如<a href="https://github.com/coreos/etcd" target="_blank" rel="external">Etcd</a>, <a href="https://github.com/hashicorp/consul" target="_blank" rel="external">Consul</a>等。同时还有些系统如<a href="https://github.com/chrislusf/seaweedfs" target="_blank" rel="external">SeaWeedFS</a>, <a href="https://influxdb.com/" target="_blank" rel="external">InfluxDB</a>采用内嵌的形式实现了Raft协议。<br>我也简单的基于<a href="http://github.com/goraft/raft" target="_blank" rel="external">Goraft</a>，基于leveldb实现了简单示例性质的强一致存储<a href="(https://github.com/senarukana/rldb">系统</a>。</p>
+<h1 id="算法目标">算法目标</h1><p>在讲述Raft算法之前，我们首先讨论一致性算法的要求，它包括以下四个方面：</p>
 <ol>
 <li>算法需要能够承受各种类型的错误。</li>
 <li>一半以上的节点能运行集群能够正常运作</li>
 <li>每个操作只要一半以上的节点成功执行就算成功</li>
 <li>不能依赖于任何外部时序</li>
 </ol>
-<h1 id="实现">实现</h1><p>Raft协议基于复制状态机（replicated state machine），即一组server从相同的初始状态起，按相同的顺序执行相同的命令，最终会达到一直的状态，如下图所示，一组server记录相同的操作日志，并以相同的顺序应用到状态机。</p>
+<h1 id="实现">实现</h1><p>Raft协议基于复制状态机（replicated state machine），即一组server从相同的初始状态起，按相同的顺序执行相同的命令，最终会达到一直的状态，如下图所示，一组server记录相同的操作日志，并以相同的顺序应用到状态机。<br><img src="/image/replicate_state_machine.jpg" alt="复制状态机"></p>
 <p>它将一致性问题进行分解为“集群选举”和“复制日志”两个部分。 集群选举过程是为了从集群中会选出唯一的leader负责服务客户端的请求。而复制日志过程，是为了保证所有server的状态和最终达到跟leader一致。</p>
 <h2 id="集群选举">集群选举</h2><h3 id="集群节点类型">集群节点类型</h3><p>集群中节点有三种类型，分别为: Leader, Follower, Candidate。 在初始时，大家都为Follower。通过选举产生集群的Leader。</p>
 <ul>
@@ -205,7 +207,6 @@
 </blockquote>
 </li>
 </ol>
-<h1 id="总结">总结</h1><p>当前已经存在许多知名开源系统基于Raft，如<a href="https://github.com/coreos/etcd" target="_blank" rel="external">Etcd</a>, <a href="https://github.com/hashicorp/consul" target="_blank" rel="external">Consul</a>等。同时还有些系统如<a href="https://github.com/chrislusf/seaweedfs" target="_blank" rel="external">SeaWeedFS</a>, <a href="https://influxdb.com/" target="_blank" rel="external">InfluxDB</a>采用内嵌的形式实现了Raft协议。<br>我也简单的基于<a href="http://github.com/goraft/raft" target="_blank" rel="external">Goraft</a>，基于leveldb实现了简单示例性质的强一致存储<a href="(https://github.com/senarukana/rldb">系统</a>。</p>
 
       
     </div>
