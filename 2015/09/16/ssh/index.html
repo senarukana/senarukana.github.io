@@ -13,7 +13,7 @@ ssh configssh配置文件默认放在/etc/ssh/sshd_config和用户目录~/.ssh/c
 <meta property="og:site_name" content="Zhe Li's Blog">
 <meta property="og:description" content="对于一个开发者，每天都需要执行的一条命令就是ssh，如果能高效使用该命令，不仅能提升工程效率，更重要的是能有一个好的心情，不用每条干着重复无聊的输入密码，host等机械劳动。本篇文章介绍如何通过配置ssh提升我们的效率。
 ssh configssh配置文件默认放在/etc/ssh/sshd_config和用户目录~/.ssh/config中，它的配置主要包括两个方面，主机配置和选项配置。主机配置顾">
-<meta property="og:updated_time" content="2015-11-25T15:50:40.000Z">
+<meta property="og:updated_time" content="2015-11-26T07:20:16.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="ssh config">
 <meta name="twitter:description" content="对于一个开发者，每天都需要执行的一条命令就是ssh，如果能高效使用该命令，不仅能提升工程效率，更重要的是能有一个好的心情，不用每条干着重复无聊的输入密码，host等机械劳动。本篇文章介绍如何通过配置ssh提升我们的效率。
@@ -117,7 +117,7 @@ ssh configssh配置文件默认放在/etc/ssh/sshd_config和用户目录~/.ssh/c
 <figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Host    &#21035;&#21517;&#10;    HostName        &#20027;&#26426;&#21517;&#10;    Port            &#31471;&#21475;&#65292;&#40664;&#35748;22&#10;    User            &#29992;&#25143;&#21517;&#10;    IdentityFile    &#23494;&#38053;&#25991;&#20214;&#30340;&#36335;&#24452;</span><br></pre></td></tr></table></figure>
 <p>IdentifyFile文件通过ssh-keygen生成，这里我们指定它的名称为test，这样会在.ssh目录下生成test.pub文件。<br>生成后我们将该文件内容复制到对端服务器.ssh/authorized_keys文件即可。<br>现在假设我们要访问的服务器主机名为test-host.com， 用户名为zheli。<br>这时我们的配置是这样：</p>
 <figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Host    test&#10;    HostName        test-host.com&#10;    User            zheli&#10;    IdentifyFile    ~/.ssh/test.pub</span><br></pre></td></tr></table></figure>
-<p>配置好后，我们仅需下面方式访问即可，是不是很简单？<br><figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ssh test</span><br></pre></td></tr></table></figure></p>
+<p>配置好后，我们仅需下面方式访问即可，是不是很简单？<br><a id="more"></a><br><figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ssh test</span><br></pre></td></tr></table></figure></p>
 <h1 id="选项配置">选项配置</h1><h2 id="多条连接共享">多条连接共享</h2><p>如果你需要在多个窗口中打开到同一个服务器的连接，而不想每次都输入用户名，密码，或是等待连接建立，那么你可以配置SSH的连接共享选项。</p>
 <figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ControlMaster auto&#10;ControlPath ~/.ssh/master-%r@%h:%p</span><br></pre></td></tr></table></figure>
 <p>通过以上配置后，当你与服务器建立一条连接后，将在.ssh生产ControlPath的文件，其实 %r 是用户名, %h 是远程主机IP, %p 是端口.<br>之后的连接都将共用这个连接文件，而不会再提示密码。你可以试试与服务器建立一条新连接后，再打开一个新窗创建同样的一条连接，你会发现，第二条连接几乎是在瞬间就建立好了。</p>

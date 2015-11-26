@@ -106,41 +106,18 @@
     
     <div class="article-entry" itemprop="articleBody">
       
-                
         <h1 id="热点Key问题">热点Key问题</h1><p>大促期间的另一个常见问题是Key热点问题。部分Key(可能对应用与某个促销商品)集中于同一机器量，使得所有流量涌向同一机器，成为系统的瓶颈。该问题的挑战在于它无法通过增加机器容量来解决。</p>
 <p>解决该问题的办法有很多，最有效果的方式是在业务层对热点数据进行切分。但对于有些情况，如小米双11促销，单台小米机型QPS超过百万，业务无法进行切分。</p>
 <p>该问题最常见的解决办法是多写策略。如搭建备用集群，写的时候双写或者异步同步，读的时候就相应的能从多个地方读。但上述方案对于双11这种读、写压力都很大的场景，还是略显不足。</p>
-<p>还有就是通过牺牲数据一致性来提升访问效率。一种是针对读的客户端缓存，另一种是针对写的由Facebook Memcached<a href="http://www.cs.utah.edu/~stutsman/cs6963/public/papers/memcached.pdf" target="_blank" rel="external">论文</a>中提出Lease租约策略。</p>
-<p>客户端缓存的思想是将部分热点内存缓存在客户端，而避免每次访问都去访问服务器。其缺点是本地缓存可能不是最新的。<br>Lease租约策略则要求每次写key时，都需要事先获得该Key的Token。这能有两个用途，一方面是避免写后读问题，详细可以看<a href="https://www.quora.com/How-does-the-lease-token-solve-the-stale-sets-problem-in-Facebooks-memcached-servers" target="_blank" rel="external">这里</a>。另一方面服务器可以通过控制连接在每秒获取Key的频率达到限流的作用，避免写入过多，造成惊群效应。</p>
+<p>还有就是通过牺牲数据一致性来提升访问效率。一种是针对读的客户端缓存，另一种是针对写的由Facebook Memcached<a href="http://www.cs.utah.edu/~stutsman/cs6963/public/papers/memcached.pdf">论文</a>中提出Lease租约策略。</p>
+<p>客户端缓存的思想是将部分热点内存缓存在客户端，而避免每次访问都去访问服务器。其缺点是本地缓存可能不是最新的。<br>Lease租约策略则要求每次写key时，都需要事先获得该Key的Token。这能有两个用途，一方面是避免写后读问题，详细可以看<a href="https://www.quora.com/How-does-the-lease-token-solve-the-stale-sets-problem-in-Facebooks-memcached-servers">这里</a>。另一方面服务器可以通过控制连接在每秒获取Key的频率达到限流的作用，避免写入过多，造成惊群效应。</p>
 <h2 id="设计">设计</h2><p>通过对我们承接的业务进行分析，在促销期间应用对于数据一致性的需求要远低于可用性的需求，他们能容忍数据在短时间内不准确。依据该原则，我们选择客户端缓存办法。<br>客户端缓存方案包含两个部分，服务端热点统计和客户端本地缓存。<br>服务端热点统计是用于探测服务当前热点，客户端缓存是将服务端的热点数据存于本地，待下次访问时直接返回。</p>
-<h2 id="服务端热点统计">服务端热点统计</h2><p>服务端热点Key统计的办法有很多，最常见的办法是直接抽样N次请求取出Topk让客户端进行缓存，但该方法存在一个很大的问题：Topk的准确性，依赖于抽样的次数。较少的抽样次数，可能导致热点key不准确，且频繁发生变化。而较多的抽样，可能提升热点key探测花费的时间、导致热点已过，同时还提高了内存占用。<br>我们需要一个自适应的抽样办法，能在热点出现时及时发现。这里我们提出了一种双层抽样办法。它分为采样阶段和定位阶段来探测热点key，最后定时反馈热点key给客户端。其具体流程如下。<br><img src="/image/hot_key_process.png" alt="hot_key_sample"></p>
-<h3 id="采样阶段">采样阶段</h3><p>我们首先将数据空间划分成1024个桶，记录每个桶的命中次数。为了提升性能，每次采样，各个线程都是采用try_lock的方式获取锁，只有拿到锁的线程才会进行统计，否则直接放行。<br>我们采样一个较小的样本N，通过采样桶的<em>标准差</em>(反映了数据的离散程度)来确定是否存在热点。其具体的判断标准为，当标准差大于整体均值的K倍时，我们认为存在热点。此时选取命中次数最多的桶作为候选桶，进入定位阶段。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">if Deviation &#62; Avg(Count) * K:&#10;    Candidate = MAX&#123;Count i&#125;</span><br></pre></td></tr></table></figure></p>
-<h3 id="定位阶段">定位阶段</h3><p>当定位到热桶后，我们对该桶里命中的Key继续进行采样，采样M次(M &lt; N)。当采样完成后，将选出大于T次的key作为热点key，放入服务器的热点Key LRUCache中，清0进行下一次定位。<br>在程序的运行过程中，采样阶段和定位阶段是同时进行的，当采样N次结束后，发现热点Key发生了变化，将会使得定位阶段重新开始。</p>
-<h3 id="线上运行效果">线上运行效果</h3><p>在实际过程中，我们选取N=10000，M=1000，K=1.5，T=100。</p>
-<p>两次采样的方法，大幅减少了抽样次数，当出现热点时，我们通常能在2*N次采样即可确定热点，占用的内存资源也较少。最后对于我们的系统，热点key的探测还要结合迁移功能。当检测到某个热点key时，在使用客户端缓存的同时，我们可能还希望能将该热点迁移到其它机器。上述热点key的办法，能有效帮助我们定位到一个热点桶，当发现桶热点持续时，我们可以发出迁移指令，迁移或者复制热点数据到其它机器。</p>
-<h2 id="客户端的热点key缓存">客户端的热点key缓存</h2><p>开启了热点key缓存的客户端将定时向服务器咨询热点的key列表，并缓存在本地的缓存中。对于每次读请求，将首先检查key是否存在于本地缓存中，如果存在则直接返回。其具体流程如下：</p>
-<p>为了更好的理解这个过程，有一下几个要点需要注意：</p>
-<ul>
-<li><p>1.本地缓存与服务器间如何同步<br>每次写操作强制删除本地cache的key，读操作时，更新后端服务器的值到本地cache。</p>
-</li>
-<li><p>2.本地缓存数据淘汰策略<br>本地缓存包含两种淘汰策略，分别是根据数据量大小的逐出的策略和根据时间的过期淘汰策略。</p>
-</li>
-<li>容量逐出策略：它是为了限制本地缓存占用的内存大小。当缓存内存超过该阈值时，会采用LRU策略逐出。在实际运行中，客户端设置的本地容量通常较小，默认只能存30个key，服务端稍大一些为100个。LRU的实现我们用的是google的<a href="https://github.com/ben-manes/concurrentlinkedhashmap" target="_blank" rel="external">ConcurrentLinkedHashMap</a>，它对于多线程更新时相比LinkedHashMap性能更好，读写性能提升20%。它更新LRU链表是异步的，且合并了多次读操作需要的更新。</li>
-<li><p>过期淘汰策略：它是为了限制服务器与客户端之间的数据不一致的窗口。当客户端向服务端读热点key操作成功后，在添加入本地缓存表的同时，会设置一个在过期时间(默认30ms)。一旦过期，客户端将需要重新从服务端获取该key值。</p>
-</li>
-<li><p>3.防止击穿<br>应用使用客户端访问我们服务时时，大多是多线程访问。试想当多个线程发现某个key的存活超过过期时间时，会做什么处理呢？会有大量请求击穿本地缓存，同时访问后端服务器，如下图。<br><img src="/image/hot_key_penetration.png" alt="热点key穿透"><br>为了解决这样的击穿问题，这里加了一个过期时间续期的操作。当多个线程并发读取某个key1时，第一个竞争到锁的线程会判断key的过期时间，如果已经过期，则返回null，并对该key续期（即延长过期时间），由于返回的是null，该线程会击穿Localcache继续向server发起请求，并更新本地Localcache。其他线程访问key时，已经是续期之后，这些线程的访问该key时，就不会发现已经过期，读到的是老的value，等到第一个线程完成server端key-value到Localcache的更新结束后，所有线程都将读到新value。这样的好处是不会在某个key过期时间一到就击穿Localcache，并大量的访问server，对server造成压力。<br>如图，只有thread-1会击穿Localcache，其他线程拿到的要么是老的value，要么是最新value。</p>
-</li>
-<li><p>4.拷贝机制<br>当客户端需要将获取的热点key对应的value写入到本地缓存时，很多场景需要深拷贝，以防止同一个对象在本地缓存之外被修改，从而造成本地缓存中的value与后端server的value不一致。<br>但是深拷贝操作本身很耗费CPU，如果每次往本地缓存中写value都需要clone的话，非常影响性能。并且我们观察发现，大部分用户在一段时间内访问一个key的机会只有一次，比如获取一个商品的所有规格信息，将需要一个for迭代循环，每次访问不同(key + i)，就需要把每个key对应的value，拷贝一次再写入本地缓存中。<br>为了提升拷贝效率，我们在第一次读取到热点key的值时，只把null当做值写入缓存。只有当本地缓存中该key还有第二次机会被访问时，客户端拿到null就会重新去服务器读最新数据，这时我们才真实的将读到的value并深拷贝到本地缓存中。因为我们认为该key有第二次读到就会有更多次机会被读到。</p>
-</li>
-</ul>
-<h1 id="延伸阅读">延伸阅读</h1><ol>
-<li><a href="http://www.cs.utah.edu/~stutsman/cs6963/public/papers/memcached.pdf" target="_blank" rel="external">Scaling Memcache at Facebook</a></li>
-<li><a href="http://highscalability.com/ehcache-java-distributed-cache" target="_blank" rel="external">Ehcache - A Java Distributed Cache</a></li>
-<li><a href="https://guava-libraries.googlecode.com/files/ConcurrentCachingAtGoogle.pdf" target="_blank" rel="external">Concurrent Cache At Google</a></li>
-<li><a href="https://code.google.com/p/concurrentlinkedhashmap/wiki/Design" target="_blank" rel="external">ConcurrentLinkedhashmap Design</a></li>
-<li><a href="http://highscalability.com/blog/2014/7/16/10-program-busting-caching-mistakes.html" target="_blank" rel="external">10 Program Busting Caching Mistakes</a></li>
-</ol>
-
+<h2 id="服务端热点统计">服务端热点统计</h2><p>服务端热点Key统计的办法有很多，最常见的办法是直接抽样N次请求取出Topk让客户端进行缓存，但该方法存在一个很大的问题：Topk的准确性，依赖于抽样的次数。较少的抽样次数，可能导致热点key不准确，且频繁发生变化。而较多的抽样，可能提升热点key探测花费的时间、导致热点已过，同时还提高了内存占用。<br>我们需要一个自适应的抽样办法，能在热点出现时及时发现。这里我们提出了一种双层抽样办法。它分为采样阶段和定位阶段来探测热点key，最后定时反馈热点key给客户端。其具体流程如下。<br><img src="/image/hot_key_process.png" alt="hot_key_sample"><br>
+        
+          <p class="article-more-link">
+            <a href="/2015/11/15/11tech_local_cache/#more">Read More</a>
+          </p>
+        
       
     </div>
     <footer class="article-footer">
@@ -270,8 +247,7 @@
     
     <div class="article-entry" itemprop="articleBody">
       
-                
-        <p>在使用git时我们通常会因为一些特殊的原因或者错误的操作造成需要撤销过去的当前或者过去工作区的某个提交，本篇文章将介绍git提供的四种方法用于解决此问题。</p>
+        <p>在使用git时我们通常会因为一些特殊的原因或者错误的操作造成需要撤销过去的当前或者过去工作区的某个提交，本篇文章将介绍git提供的四种方法:checkout, revert, reset, clean 解决此问题。</p>
 <h2 id="1-_checkout">1. checkout</h2><p>checkout提供了一种安全的机制，用于将当前工作区切换成过去保存的工作区。它包含三个功能:</p>
 <ul>
 <li><p>1.checkout branch:<br>切换当前分支到指定分支上，这是我们最常用的，用于分支间的切换。另外-b参数可用于创建以当前分支作为基础创建一个新的分支。</p>
@@ -287,26 +263,11 @@
 <li>3.checkout commit file<br>当我们只想查看过去某次提交的一个文件，可以使用上面的命令。此时git将会把当前file更新为过去某次提交的内容，并将其放入staged区中。如果我们想恢复该文件，可以使用下面命令,这时将更新file为最新HEAD的文件。<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git checkout HEAD file</span><br></pre></td></tr></table></figure>
 </li>
 </ul>
-<h2 id="2-_revert">2. revert</h2><p>revert用于撤销过去某次提交。为了避免丢失commit历史信息，git将试图把revert提交的内容在当前提交undo。过程如图：<br><img src="/image/git-revert-commit.png" alt="revert commit"><br>例如,我们当前的git log如下：<br><figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">&gt; git <span class="built_in">log</span> --oneline</span><br><span class="line"></span><br><span class="line">a447eda add b</span><br><span class="line">a3197ff add a</span><br></pre></td></tr></table></figure></p>
-<p>此时我们想放弃a3197ff提交，删除a文件。 我们使用：<br><figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&gt; git revert a3197ff</span><br></pre></td></tr></table></figure></p>
-<p>此时将产生一次新的提交，它的操作是删除a文件。<br>但通常情况下，如果是修改文件，此时将会产生部分冲突，此时的处理和merge一样，处理完冲突后提交即可。<br>如果revert 某次commit发现提交的内容没有达到预期，此时可以使用：<br><figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&gt; git revert HEAD</span><br></pre></td></tr></table></figure></p>
-<p>恢复到此前HEAD状态。如果有冲突无法进行。可以使用后续将介绍到的reset:<br><figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git reset --hard HEAD~</span><br></pre></td></tr></table></figure></p>
-<h2 id="3-_reset">3. reset</h2><p>如果说revert提供了一种安全的方式撤销某次提交，那么reset则提供了一种危险的方式来撤销提交。<br>同checkout类似，它提供了多种方式：</p>
-<ul>
-<li>1.git reset file<br>用于将file从staged区移出</li>
-<li><p>2.git reset<br>将撤销staged区中所有的修改移出，但修改的内容将保留。<br>例如下面这个例子，git add a操作原先将a文件添加到了staged工作区，但是git reset将把a文件从staged工作区移出。此时a文件内容仍然保留。</p>
-<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">&gt; <span class="built_in">echo</span> <span class="string">"haha"</span> &gt; a</span><br><span class="line">&gt; git add a</span><br><span class="line">&gt; git reset</span><br></pre></td></tr></table></figure>
-</li>
-<li><p>3.git reset –hard<br>–hard将把处于staged工作区的所有修改恢复到HEAD的状态。同样是上面那个例子，执行git reset –hard之后，a文件将被删除(因为a文件在HEAD中并不存在)，并且无法像revert一样把文件找回，所以执行此命令需格外小心。</p>
-</li>
-<li>4.git reset commit<br>它的过程如图：<br><img src="/image/git-reset-commit.png" alt="reset-commit"><br>它试图将HEAD指到过去某次提交，并将此次提交之后的提交都删除。<br>例如，我们当前的git log如下：<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">&gt; ls</span><br><span class="line">a b c</span><br><span class="line">&gt; git <span class="built_in">log</span> --oneline</span><br><span class="line">c932fdb add c</span><br><span class="line">a447eda add b</span><br><span class="line">a3197ff add a</span><br><span class="line">&gt; git reset a3197ff</span><br><span class="line">&gt; git <span class="built_in">log</span> --oneline</span><br><span class="line">a3197ff add a</span><br><span class="line">&gt; ls</span><br><span class="line">a b c</span><br></pre></td></tr></table></figure>
-</li>
-</ul>
-<p>执行reset命令之后，HEAD将指向a3197ff，b，c的提交记录都将被删除。但是b，c文件仍然保留。如果使用–hard参数，b,c文件都将随之消失。git reset –hard通常用于撤销提交。<br><figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">&gt; git reset --hard a3197ff</span><br><span class="line">HEAD is now at a3197ff a</span><br><span class="line">&gt; ls</span><br><span class="line">a</span><br></pre></td></tr></table></figure></p>
-<h2 id="4-_clean">4. clean</h2><p>git clean将删除工作区中所有untracked file。同linux rm命令一样，被清理的file将不能恢复，执行此命令需慎重。<br>此命令通常和git reset命令结合使用，它起到的效果和git reset –hard一样。</p>
-<h1 id="总结">总结</h1><p>文章分别介绍了checkout, revert, reset以及clean 4种方式撤销对当前工作区的修改。其中reset和clean较为危险，一旦执行数据将可能无法找回。做此操作时需要谨慎。</p>
-<h1 id="参考文章">参考文章</h1><p>git tutorial undo changes: <a href="https://www.atlassian.com/git/tutorials/undoing-changes" target="_blank" rel="external">https://www.atlassian.com/git/tutorials/undoing-changes</a></p>
-
+        
+          <p class="article-more-link">
+            <a href="/2015/09/30/git-undo/#more">Read More</a>
+          </p>
+        
       
     </div>
     <footer class="article-footer">
@@ -352,25 +313,13 @@
     
     <div class="article-entry" itemprop="articleBody">
       
-                
         <h1 id="fixture">fixture</h1><p>fixture是pytest特有的功能，它用pytest.fixture标识，定义在函数前面。在你编写测试函数的时候，你可以将此函数名称做为传入参数，pytest将会以依赖注入方式，将该函数的返回值作为测试函数的传入参数。<br>如下面的例子，我们首先定义了hello函数，并将其标记为fixture，在test_string函数中，我们将它作为入参使用。<br><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="decorator">@pytest.fixture()</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">hello</span><span class="params">()</span>:</span></span><br><span class="line">    <span class="keyword">return</span> <span class="string">"hello"</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">test_string</span><span class="params">(hello)</span>:</span></span><br><span class="line">    <span class="keyword">assert</span> hello == <span class="string">"hello"</span>, <span class="string">"fixture should return hello"</span></span><br></pre></td></tr></table></figure></p>
-<p>fixture提供给开发者多种可能性，可以把它当做对象创建者，充当测试开始前的准备函数（类似setup_function)，还能为测试函数提供多种不同参数fixture对象。</p>
-<h2 id="1-_准备函数:_usefixtures">1. 准备函数: usefixtures</h2><p>在测试的时候，我们有时需要需要setup_function和teardown_function等系列函数来完成测试函数的初始化以及清理工作。<br>fixture提供了更加灵活的方式，来完成这个工作。<br>usefixtures标记应用在函数前，表示在开始测试前应用该函数但不需要其返回值。<br>下面例子创建一个临时目录，并将其设为当前目录。<br><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="decorator">@pytest.fixture()</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">cleandir</span><span class="params">()</span>:</span></span><br><span class="line">    newpath = tempfile.mkdtemp()</span><br><span class="line">    os.chdir(newpath)</span><br><span class="line"></span><br><span class="line"><span class="decorator">@pytest.mark.usefixtures("cleandir")</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">TestDirectoryInit</span>:</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">test_cwd_starts_empty</span><span class="params">(self)</span>:</span></span><br><span class="line">        <span class="keyword">assert</span> os.listdir(os.getcwd()) == []</span><br><span class="line">        <span class="keyword">with</span> open(<span class="string">"myfile"</span>, <span class="string">"w"</span>) <span class="keyword">as</span> f:</span><br><span class="line">            f.write(<span class="string">"hello"</span>)</span><br></pre></td></tr></table></figure></p>
-<p>我们也可以使用逗号分割，使用多个fixture。<br>pytest.mark.usefixtures(“cleandir”, “anotherfixture”)</p>
-<h3 id="2-_销毁函数:_addfinalizer">2. 销毁函数: addfinalizer</h3><p>只初始化可能还不够，我们还需要释放函数，fixture通过addfinallizer注册释放函数。<br>下面例子将在测试函数完成后，释放smtp对象。<br><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="decorator">@pytest.fixture()</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">smtp</span><span class="params">(request)</span>:</span></span><br><span class="line">    smtp = smtplib.SMTP(<span class="string">"smtp.gmail.com"</span>)</span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">fin</span><span class="params">()</span>:</span></span><br><span class="line">        <span class="keyword">print</span> (<span class="string">"teardown smtp"</span>)</span><br><span class="line">        smtp.close()</span><br><span class="line">    request.addfinalizer(fin)</span><br><span class="line">    <span class="keyword">return</span> smtp  <span class="comment"># provide the fixture value</span></span><br></pre></td></tr></table></figure></p>
-<h3 id="获取调用函数信息:_request">获取调用函数信息: request</h3><p>使用fixture标记函数后，函数将默认接入一个request参数，它将包含使用该fixture函数的信息，详情可参考这里。<br>这使得我们可以更加灵活的根据不同的函数来决定创建不同的对象以及释放函数。<br>例如下面例子，我们检查测试函数对应的module里的变量值，以此来决定创建和释放函数。<br><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># content of conftest.py</span></span><br><span class="line"><span class="decorator">@pytest.fixture()</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">smtp</span><span class="params">(request)</span>:</span></span><br><span class="line">    server = getattr(request.module, <span class="string">"smtpserver"</span>, <span class="string">"smtp.gmail.com"</span>)</span><br><span class="line">    need_finalize = getattr(request.module, <span class="string">"need_finalize"</span>, <span class="keyword">True</span>)</span><br><span class="line">    smtp = smtplib.SMTP(server)</span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">fin</span><span class="params">()</span>:</span></span><br><span class="line">        <span class="keyword">if</span> need_finalize:</span><br><span class="line">            <span class="keyword">print</span> (<span class="string">"finalizing %s (%s)"</span> % (smtp, server))</span><br><span class="line">            smtp.close()</span><br><span class="line">    request.addfinalizer(fin)</span><br><span class="line">    <span class="keyword">return</span> smtp</span><br><span class="line"></span><br><span class="line"><span class="comment"># content of test_anothersmtp.py</span></span><br><span class="line">smtpserver = <span class="string">"mail.python.org"</span>  <span class="comment"># will be read by smtp fixture</span></span><br><span class="line">need_finalize = <span class="keyword">False</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">test_showhelo</span><span class="params">(smtp)</span>:</span></span><br><span class="line">    <span class="keyword">assert</span> <span class="number">0</span>, smtp.helo()</span><br></pre></td></tr></table></figure></p>
-<h2 id="3-_参数">3. 参数</h2><p>有时我们需要全面测试多种不同条件下的一个对象，功能是否符合预期。我们可以通过params参数来指定传入的参数。<br>下面例子test_mail将执行2次，分别对应smtp fixture的两种不同参数<br><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">SMTP</span>:</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span><span class="params">(self, smtp, sender, receiver)</span>:</span></span><br><span class="line">        self.smtp = smtp</span><br><span class="line">        self.sender = sender</span><br><span class="line">        self.receiver = receiver</span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__del__</span><span class="params">(self)</span>:</span></span><br><span class="line">        self.smtp.close()</span><br><span class="line"></span><br><span class="line"><span class="decorator">@pytest.fixture(params=[["smtp.gmail.com", "from@domain.com", "to@doamin.com"], ["mail.python.org", "from@python.org", "to@python.org"])</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">smtp</span><span class="params">(request)</span>:</span></span><br><span class="line">    <span class="keyword">return</span> SMTP(<span class="comment">#param)</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">test_mail</span><span class="params">(smtp)</span>:</span></span><br><span class="line">    message = <span class="string">"hello"</span></span><br><span class="line">    <span class="keyword">assert</span> smtp.sendmail(message)</span><br></pre></td></tr></table></figure></p>
-<p>pytest在使用不同参数运行test时将生成不同的测试id。我们可以通过ids指定其id。<br><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="decorator">@pytest.fixture(params=[1, 2, 4, 8], ids=["a", "b"])</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">param_a</span><span class="params">(request)</span>:</span></span><br><span class="line">    <span class="keyword">return</span> request.param</span><br></pre></td></tr></table></figure></p>
-<h2 id="fixture的作用域">fixture的作用域</h2><p>fixture提供三种作用域，用于指定fixture初始化的规则。</p>
-<h3 id="function">function</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="decorator">@pytest.fixture(scope="function")</span></span><br></pre></td></tr></table></figure>
-<p>默认是scode=”function”，表示fixture会为每个function初始化一次。</p>
-<h3 id="module">module</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="decorator">@pytest.fixture(scope="module")</span></span><br></pre></td></tr></table></figure>
-<p>scope=”module”表示一个模块fixture只初始化一次，如果一个模块使用多次该fixture，将会使用同个对象。</p>
-<h3 id="session">session</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="decorator">@pytest.fixture(scope="session")</span></span><br></pre></td></tr></table></figure>
-<p>scope=”session”,表示全局初始化一次。通常用于全局系统初始化.<br>可以使用py.test –fixture test_module.py 查看绑定的fixture</p>
-<h2 id="fixture的自动执行：autouse">fixture的自动执行：autouse</h2><p>我们有时候需要某些fixture在全局自动执行，如某些全局变量的初始化工作，亦或一些全局化的清理或者初始化函数。这时我们可以使用autouse。<br>下面例子，在开始测试前我们清理了此前可能残留的文件，接着将程序目录设置为该目录。设置为autouse=True使得函数将默认执行。<br><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">work_dir = <span class="string">"/tmp/app"</span></span><br><span class="line"><span class="decorator">@pytest.fixture(session="session", autouse=True)</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">clean_workdir</span><span class="params">()</span>:</span></span><br><span class="line">    shutil.rmtree(work_dir)</span><br><span class="line">    os.mkdir(work_dir)</span><br><span class="line">    os.chrdir(work_dir)</span><br></pre></td></tr></table></figure></p>
-<h2 id="总结">总结</h2><p>fixture的存在使得我们在编写测试函数的准备函数、销毁函数或者多个条件的测试提供了更加灵活的选择。</p>
-
+<p>fixture提供给开发者多种可能性，可以把它当做对象创建者，充当测试开始前的准备函数（类似setup_function)，还能为测试函数提供多种不同参数fixture对象。<br>
+        
+          <p class="article-more-link">
+            <a href="/2015/09/27/pytest-fixture/#more">Read More</a>
+          </p>
+        
       
     </div>
     <footer class="article-footer">
@@ -416,7 +365,6 @@
     
     <div class="article-entry" itemprop="articleBody">
       
-                
         <p>对于一个开发者，每天都需要执行的一条命令就是ssh，如果能高效使用该命令，不仅能提升工程效率，更重要的是能有一个好的心情，不用每条干着重复无聊的输入密码，host等机械劳动。本篇文章介绍如何通过配置ssh提升我们的效率。</p>
 <h1 id="ssh_config">ssh config</h1><p>ssh配置文件默认放在/etc/ssh/sshd_config和用户目录~/.ssh/config中，它的配置主要包括两个方面，主机配置和选项配置。主机配置顾名思义用于配置我们要登录的主机选项，选项则配置关于ssh连接信息。下文将详细介绍。</p>
 <h1 id="主机配置">主机配置</h1><p>有时我们需要连接多台服务器查看信息或者执行命令，可能由于配置的不同，每次访问服务器都可能像下面这样：<br><figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ssh username@host -p port</span><br></pre></td></tr></table></figure></p>
@@ -424,19 +372,12 @@
 <figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Host    &#21035;&#21517;&#10;    HostName        &#20027;&#26426;&#21517;&#10;    Port            &#31471;&#21475;&#65292;&#40664;&#35748;22&#10;    User            &#29992;&#25143;&#21517;&#10;    IdentityFile    &#23494;&#38053;&#25991;&#20214;&#30340;&#36335;&#24452;</span><br></pre></td></tr></table></figure>
 <p>IdentifyFile文件通过ssh-keygen生成，这里我们指定它的名称为test，这样会在.ssh目录下生成test.pub文件。<br>生成后我们将该文件内容复制到对端服务器.ssh/authorized_keys文件即可。<br>现在假设我们要访问的服务器主机名为test-host.com， 用户名为zheli。<br>这时我们的配置是这样：</p>
 <figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Host    test&#10;    HostName        test-host.com&#10;    User            zheli&#10;    IdentifyFile    ~/.ssh/test.pub</span><br></pre></td></tr></table></figure>
-<p>配置好后，我们仅需下面方式访问即可，是不是很简单？<br><figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ssh test</span><br></pre></td></tr></table></figure></p>
-<h1 id="选项配置">选项配置</h1><h2 id="多条连接共享">多条连接共享</h2><p>如果你需要在多个窗口中打开到同一个服务器的连接，而不想每次都输入用户名，密码，或是等待连接建立，那么你可以配置SSH的连接共享选项。</p>
-<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ControlMaster auto&#10;ControlPath ~/.ssh/master-%r@%h:%p</span><br></pre></td></tr></table></figure>
-<p>通过以上配置后，当你与服务器建立一条连接后，将在.ssh生产ControlPath的文件，其实 %r 是用户名, %h 是远程主机IP, %p 是端口.<br>之后的连接都将共用这个连接文件，而不会再提示密码。你可以试试与服务器建立一条新连接后，再打开一个新窗创建同样的一条连接，你会发现，第二条连接几乎是在瞬间就建立好了。</p>
-<h2 id="长连接">长连接</h2><p>如果你发现自己每条需要连接同一个服务器无数次，那么长连接选项就是为你准备的：</p>
-<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ControlPersist 4h</span><br></pre></td></tr></table></figure>
-<p>现在你每次通过SSH与服务器建立连接之后，这条连接将被保持4个小时，即使在你退出服务器之后，这条连接依然可以重用，因此，在你下一次（4小时之内）登录服务器时，你会发现连接以闪电般的速度建立完成，这个选项对于通过scp拷贝多个文件提速尤其明显，因为你不在需要为每个文件做单独的认证了。</p>
-<p>##减少延迟<br>如果每次连接服务器都意味着你需要等待几十秒而无所事事，那么你或许应该试试在你的SSH配置中加入下面这条：<br><figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">GSSAPIAuthentication no</span><br></pre></td></tr></table></figure></p>
-<p>服务器端启用了GSSAPI。登陆的时候客户端需要对服务器端的IP地址进行反解析，如果服务器的IP地址没有配置PTR记录，那么就容易在这里卡住了，通过设置禁用该功能。</p>
-<p>##加速连接<br>如果你确保你和某个服务器之间的连接是安全的（比如通过公司内网连接），那么你就可以通过选择arcfourencryption算法来让数据传输更快一些：<br><figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Ciphers arcfour</span><br></pre></td></tr></table></figure></p>
-<p>注意这个加速是以牺牲数据的“加密”性为代价的，所以如果你连接的是位于网上的服务器，千万不要打开这个选项，并且确保你是通过VPN建立的连接。</p>
-<h2 id="心跳">心跳</h2><p>有时服务端设置了超时选项，当长时间未与服务器交互时，会主动断开连接。为了避免这个问题，可以通过ServerAliveInterval选项，使得client端定时向Server端发送心跳<br><figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ServerAliveInterval 60</span><br></pre></td></tr></table></figure></p>
-
+<p>配置好后，我们仅需下面方式访问即可，是不是很简单？<br>
+        
+          <p class="article-more-link">
+            <a href="/2015/09/16/ssh/#more">Read More</a>
+          </p>
+        
       
     </div>
     <footer class="article-footer">

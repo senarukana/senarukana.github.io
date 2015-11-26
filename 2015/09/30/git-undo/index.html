@@ -5,28 +5,28 @@
   
   <title>git撤销 | Zhe Li&#39;s Blog</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-  <meta name="description" content="在使用git时我们通常会因为一些特殊的原因或者错误的操作造成需要撤销过去的当前或者过去工作区的某个提交，本篇文章将介绍git提供的四种方法用于解决此问题。
+  <meta name="description" content="在使用git时我们通常会因为一些特殊的原因或者错误的操作造成需要撤销过去的当前或者过去工作区的某个提交，本篇文章将介绍git提供的四种方法:checkout, revert, reset, clean 解决此问题。
 1. checkoutcheckout提供了一种安全的机制，用于将当前工作区切换成过去保存的工作区。它包含三个功能:
 
-1.checkout branch:切换当前分支到指定分支上，这是我们最常用的，用于分支间的切换。另外-b参数可用于创建以当">
+1.checkout branch:切换当前分支到指定分支上，这">
 <meta property="og:type" content="article">
 <meta property="og:title" content="git撤销">
 <meta property="og:url" content="http://yoursite.com/2015/09/30/git-undo/index.html">
 <meta property="og:site_name" content="Zhe Li's Blog">
-<meta property="og:description" content="在使用git时我们通常会因为一些特殊的原因或者错误的操作造成需要撤销过去的当前或者过去工作区的某个提交，本篇文章将介绍git提供的四种方法用于解决此问题。
+<meta property="og:description" content="在使用git时我们通常会因为一些特殊的原因或者错误的操作造成需要撤销过去的当前或者过去工作区的某个提交，本篇文章将介绍git提供的四种方法:checkout, revert, reset, clean 解决此问题。
 1. checkoutcheckout提供了一种安全的机制，用于将当前工作区切换成过去保存的工作区。它包含三个功能:
 
-1.checkout branch:切换当前分支到指定分支上，这是我们最常用的，用于分支间的切换。另外-b参数可用于创建以当">
+1.checkout branch:切换当前分支到指定分支上，这">
 <meta property="og:image" content="http://yoursite.com/image/git-checkout-commit.png">
 <meta property="og:image" content="http://yoursite.com/image/git-revert-commit.png">
 <meta property="og:image" content="http://yoursite.com/image/git-reset-commit.png">
-<meta property="og:updated_time" content="2015-09-29T12:24:44.000Z">
+<meta property="og:updated_time" content="2015-11-26T07:21:40.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="git撤销">
-<meta name="twitter:description" content="在使用git时我们通常会因为一些特殊的原因或者错误的操作造成需要撤销过去的当前或者过去工作区的某个提交，本篇文章将介绍git提供的四种方法用于解决此问题。
+<meta name="twitter:description" content="在使用git时我们通常会因为一些特殊的原因或者错误的操作造成需要撤销过去的当前或者过去工作区的某个提交，本篇文章将介绍git提供的四种方法:checkout, revert, reset, clean 解决此问题。
 1. checkoutcheckout提供了一种安全的机制，用于将当前工作区切换成过去保存的工作区。它包含三个功能:
 
-1.checkout branch:切换当前分支到指定分支上，这是我们最常用的，用于分支间的切换。另外-b参数可用于创建以当">
+1.checkout branch:切换当前分支到指定分支上，这">
   
   
     <link rel="icon" href="favicon.png">
@@ -119,7 +119,7 @@
     <div class="article-entry" itemprop="articleBody">
       
                 
-        <p>在使用git时我们通常会因为一些特殊的原因或者错误的操作造成需要撤销过去的当前或者过去工作区的某个提交，本篇文章将介绍git提供的四种方法用于解决此问题。</p>
+        <p>在使用git时我们通常会因为一些特殊的原因或者错误的操作造成需要撤销过去的当前或者过去工作区的某个提交，本篇文章将介绍git提供的四种方法:checkout, revert, reset, clean 解决此问题。</p>
 <h2 id="1-_checkout">1. checkout</h2><p>checkout提供了一种安全的机制，用于将当前工作区切换成过去保存的工作区。它包含三个功能:</p>
 <ul>
 <li><p>1.checkout branch:<br>切换当前分支到指定分支上，这是我们最常用的，用于分支间的切换。另外-b参数可用于创建以当前分支作为基础创建一个新的分支。</p>
@@ -135,6 +135,7 @@
 <li>3.checkout commit file<br>当我们只想查看过去某次提交的一个文件，可以使用上面的命令。此时git将会把当前file更新为过去某次提交的内容，并将其放入staged区中。如果我们想恢复该文件，可以使用下面命令,这时将更新file为最新HEAD的文件。<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git checkout HEAD file</span><br></pre></td></tr></table></figure>
 </li>
 </ul>
+<a id="more"></a>
 <h2 id="2-_revert">2. revert</h2><p>revert用于撤销过去某次提交。为了避免丢失commit历史信息，git将试图把revert提交的内容在当前提交undo。过程如图：<br><img src="/image/git-revert-commit.png" alt="revert commit"><br>例如,我们当前的git log如下：<br><figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">&gt; git <span class="built_in">log</span> --oneline</span><br><span class="line"></span><br><span class="line">a447eda add b</span><br><span class="line">a3197ff add a</span><br></pre></td></tr></table></figure></p>
 <p>此时我们想放弃a3197ff提交，删除a文件。 我们使用：<br><figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&gt; git revert a3197ff</span><br></pre></td></tr></table></figure></p>
 <p>此时将产生一次新的提交，它的操作是删除a文件。<br>但通常情况下，如果是修改文件，此时将会产生部分冲突，此时的处理和merge一样，处理完冲突后提交即可。<br>如果revert 某次commit发现提交的内容没有达到预期，此时可以使用：<br><figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&gt; git revert HEAD</span><br></pre></td></tr></table></figure></p>
