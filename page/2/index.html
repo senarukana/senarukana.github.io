@@ -130,6 +130,64 @@
 
 
     
+      <article id="post-ssh" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-inner">
+    
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2015/04/16/ssh/">ssh config</a>
+    </h1>
+  
+
+        <div class="article-meta">
+          
+  <div class="article-date">
+    <i class="fa fa-calendar"></i>
+    <a href="/2015/04/16/ssh/">
+      <time datetime="2015-04-16T11:20:16.000Z" itemprop="datePublished">2015-04-16</time>
+    </a>
+  </div>
+
+
+          
+        </div>
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>对于一个开发者，每天都需要执行的一条命令就是ssh，如果能高效使用该命令，不仅能提升工程效率，更重要的是能有一个好的心情，不用每条干着重复无聊的输入密码，host等机械劳动。本篇文章介绍如何通过配置ssh提升我们的效率。</p>
+<h1 id="ssh_config">ssh config</h1><p>ssh配置文件默认放在/etc/ssh/sshd_config和用户目录~/.ssh/config中，它的配置主要包括两个方面，主机配置和选项配置。主机配置顾名思义用于配置我们要登录的主机选项，选项则配置关于ssh连接信息。下文将详细介绍。</p>
+<h1 id="主机配置">主机配置</h1><p>有时我们需要连接多台服务器查看信息或者执行命令，可能由于配置的不同，每次访问服务器都可能像下面这样：<br><figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ssh username@host -p port</span><br></pre></td></tr></table></figure></p>
+<p>输入繁琐，且我们需要记忆用户名以及host。 一个记忆host的办法是把它放到/etc/hosts中，但我们仍然需要输入用户名，密码，或者有时候port。<br>ssh提供了更简便的办法，在config中，可以加入如下配置项：</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Host    &#21035;&#21517;&#10;    HostName        &#20027;&#26426;&#21517;&#10;    Port            &#31471;&#21475;&#65292;&#40664;&#35748;22&#10;    User            &#29992;&#25143;&#21517;&#10;    IdentityFile    &#23494;&#38053;&#25991;&#20214;&#30340;&#36335;&#24452;</span><br></pre></td></tr></table></figure>
+<p>IdentifyFile文件通过ssh-keygen生成，这里我们指定它的名称为test，这样会在.ssh目录下生成test.pub文件。<br>生成后我们将该文件内容复制到对端服务器.ssh/authorized_keys文件即可。<br>现在假设我们要访问的服务器主机名为test-host.com， 用户名为zheli。<br>这时我们的配置是这样：</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Host    test&#10;    HostName        test-host.com&#10;    User            zheli&#10;    IdentifyFile    ~/.ssh/test.pub</span><br></pre></td></tr></table></figure>
+<p>配置好后，我们仅需下面方式访问即可，是不是很简单？<br>
+        
+          <p class="article-more-link">
+            <a href="/2015/04/16/ssh/#more">Read More</a>
+          </p>
+        
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://yoursite.com/2015/04/16/ssh/" data-id="cih0i58jp000ihqw47ycuj3a4" class="article-share-link">分享到</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/tools/">tools</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+    
       <article id="post-weedfs" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-inner">
     
@@ -232,57 +290,6 @@
     </div>
     <footer class="article-footer">
       <a data-url="http://yoursite.com/2015/04/07/life-of-running/" data-id="cih0i58kd0014hqw4rltbjb2b" class="article-share-link">分享到</a>
-      
-      
-  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/life/">life</a></li></ul>
-
-    </footer>
-  </div>
-  
-</article>
-
-
-
-    
-      <article id="post-pig-or-philosphy" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-inner">
-    
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2015/04/07/pig-or-philosphy/">猪和哲学家</a>
-    </h1>
-  
-
-        <div class="article-meta">
-          
-  <div class="article-date">
-    <i class="fa fa-calendar"></i>
-    <a href="/2015/04/07/pig-or-philosphy/">
-      <time datetime="2015-04-07T05:15:55.000Z" itemprop="datePublished">2015-04-07</time>
-    </a>
-  </div>
-
-
-          
-        </div>
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p>&emsp;&emsp;&emsp;在英旅行期间，偶遇一个在美读研学社会福利(social warefare)的妹子。她的专业要求至少需要1000小时的社会实践，于是她在上课的同时还需辗转于多家社会保障组织，最近就在日内瓦的世界卫生组织实习了三月。不知怎的和她聊到了日后的目标， 她满脸兴奋的说，要是能去非洲一个欠发达地区(比如刚果)工作几年，了解当地的不同文化，感受到世界的五彩缤纷，使人生多一些阅历，多一些思考。接着转过头来问我同样问题， 被她这个充满着浪漫主义色彩的答案震慑住的我，想了想说，想过一个能自给自足并能自得其乐的生活，不用大富大贵，但也不必为生计担忧。她当然对这个答案不满意，觉得生活应该充满更多的色彩和乐趣。但又好像有些犹豫，可能考虑到生计也是必要的。而我也有些不安，觉得目标里确实差了点什么。<br>&emsp;&emsp;&emsp;在我看来，人生目标集中反映了双方的人生观和价值观。我从小比较低俗，是较典型功利主义者，谈到生活，首先想到的是如何让自己幸福，而生活得快乐才能让自己幸福。从小在伟大祖国的教育熏陶下，让我一直有一种思想，有趣必须是那些能让我乐呵的，亦或是那些在短期内我能取得一定”成就”的。所以我认为玩电子游戏，和同学一起出去旅游，唱K是有趣的，而除了工科学科其它也是无趣的。做个简易电话，计算机写两个程序，我觉得不错。但人文，特别是地理、历史，政治，是我极为讨厌的学科，因为我觉得不接地气，纯粹是陈述事实，而这些事实又是那么的虚无缥缈。记得高中之前，家里人老说我学习不好，让我好好努力。我总是功利的反问道，学的那些一点用都没有，你说我知道那唐朝什么贞观之治是多少年有什么意义，你说让我证明数学的那些三角形相似，全等什么可以干嘛。我爸总是一句，人生中很多东西都是没有用的，但是却是潜移默化的。我当然不认可这种蹩脚理论，然后不免一场争吵，当然最后都是我胜利告终。<br>
-        
-          <p class="article-more-link">
-            <a href="/2015/04/07/pig-or-philosphy/#more">Read More</a>
-          </p>
-        
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://yoursite.com/2015/04/07/pig-or-philosphy/" data-id="cih0i58k5000vhqw4l8ywkx29" class="article-share-link">分享到</a>
       
       
   <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/life/">life</a></li></ul>
@@ -692,8 +699,8 @@
             
             <div class="item-inner">
               <p class="item-category"></p>
-              <p class="item-title"><a href="/2015/06/16/ssh/" class="title">ssh config</a></p>
-              <p class="item-date"><time datetime="2015-06-16T11:20:16.000Z" itemprop="datePublished">2015-06-16</time></p>
+              <p class="item-title"><a href="/2015/06/13/raft/" class="title">raft</a></p>
+              <p class="item-date"><time datetime="2015-06-13T05:11:07.000Z" itemprop="datePublished">2015-06-13</time></p>
             </div>
           </li>
         
