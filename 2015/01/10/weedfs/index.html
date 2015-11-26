@@ -5,40 +5,28 @@
   
   <title>WEEDFS | Zhe Li&#39;s Blog</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-  <meta name="description" content="#特点
-
-
+  <meta name="description" content="weed-fs是一款由Go语言实现的，基于facebook haystack论文的面向blob的分布式存储系统，部分应用于google内部。该系统具有代码量较少，结构简单，且不包含第三方依赖，易于部署的特点。本文将简单介绍一下这个系统。
+特点
 针对大量小文件的文件系统。
 中心化设计，架构简单，代码量少，由go编写易于维护。
-各种粒度的复制级别：包括同步/异步rackaware， datacenter aware的复制等。
-无单节点故障，Master之间Raft协议保证数据可靠性，节点故障可秒级切换。
-支持各种级别的数据压缩
-支持目录结构，记录目录元信息。">
+各种粒度的复制级别：包括同步/异步rackaware， datacente">
 <meta property="og:type" content="article">
 <meta property="og:title" content="WEEDFS">
 <meta property="og:url" content="http://yoursite.com/2015/01/10/weedfs/index.html">
 <meta property="og:site_name" content="Zhe Li's Blog">
-<meta property="og:description" content="#特点
-
-
+<meta property="og:description" content="weed-fs是一款由Go语言实现的，基于facebook haystack论文的面向blob的分布式存储系统，部分应用于google内部。该系统具有代码量较少，结构简单，且不包含第三方依赖，易于部署的特点。本文将简单介绍一下这个系统。
+特点
 针对大量小文件的文件系统。
 中心化设计，架构简单，代码量少，由go编写易于维护。
-各种粒度的复制级别：包括同步/异步rackaware， datacenter aware的复制等。
-无单节点故障，Master之间Raft协议保证数据可靠性，节点故障可秒级切换。
-支持各种级别的数据压缩
-支持目录结构，记录目录元信息。">
-<meta property="og:updated_time" content="2015-09-29T12:24:44.000Z">
+各种粒度的复制级别：包括同步/异步rackaware， datacente">
+<meta property="og:updated_time" content="2015-11-26T07:32:08.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="WEEDFS">
-<meta name="twitter:description" content="#特点
-
-
+<meta name="twitter:description" content="weed-fs是一款由Go语言实现的，基于facebook haystack论文的面向blob的分布式存储系统，部分应用于google内部。该系统具有代码量较少，结构简单，且不包含第三方依赖，易于部署的特点。本文将简单介绍一下这个系统。
+特点
 针对大量小文件的文件系统。
 中心化设计，架构简单，代码量少，由go编写易于维护。
-各种粒度的复制级别：包括同步/异步rackaware， datacenter aware的复制等。
-无单节点故障，Master之间Raft协议保证数据可靠性，节点故障可秒级切换。
-支持各种级别的数据压缩
-支持目录结构，记录目录元信息。">
+各种粒度的复制级别：包括同步/异步rackaware， datacente">
   
   
     <link rel="icon" href="favicon.png">
@@ -131,35 +119,29 @@
     <div class="article-entry" itemprop="articleBody">
       
                 
-        <p>#特点</p>
-<blockquote>
-<ul>
+        <p>weed-fs是一款由Go语言实现的，基于facebook <a href="https://www.usenix.org/legacy/event/osdi10/tech/full_papers/Beaver.pdf" target="_blank" rel="external">haystack论文</a>的面向blob的分布式存储系统，部分应用于google内部。该系统具有代码量较少，结构简单，且不包含第三方依赖，易于部署的特点。本文将简单介绍一下这个系统。</p>
+<h1 id="特点">特点</h1><ul>
 <li>针对大量小文件的文件系统。</li>
 <li>中心化设计，架构简单，代码量少，由go编写易于维护。</li>
 <li>各种粒度的复制级别：包括同步/异步rackaware， datacenter aware的复制等。</li>
 <li>无单节点故障，Master之间Raft协议保证数据可靠性，节点故障可秒级切换。</li>
 <li>支持各种级别的数据压缩</li>
-<li>支持目录结构，记录目录元信息。<a id="more"></a> 
-<h1 id="设计">设计</h1>设计很大程度上借鉴的facebook的论文:Finding a neddle in the hay stack</li>
+<li>支持目录结构，记录目录元信息。</li>
 </ul>
-</blockquote>
+<h1 id="设计">设计</h1><p>设计很大程度上借鉴的facebook的论文:Finding a neddle in the hay stack</p>
 <p>系统由两个部分构成：Master和VolumeServer。</p>
 <h2 id="Master">Master</h2><p>Master: 维护Volume的元数据，和VolumeServer的状态</p>
-<p>###元数据管理</p>
-<p>为了限制Master内存使用，它只维护volumeid到VolumeServer的映射关系。 客户端需要<strong>自己</strong>维护文件到fid的映射，如存放到memcached或者mysql。<br>关系如下：<strong>topology/data_center/rack/data_node/volumes</strong><br>请求处理方式</p>
+<h3 id="元数据管理">元数据管理</h3><p>为了限制Master内存使用，它只维护volumeid到VolumeServer的映射关系。 客户端需要<strong>自己</strong>维护文件到fid的映射，如存放到memcached或者mysql。<br>关系如下：<strong>topology/data_center/rack/data_node/volumes</strong><br>请求处理方式</p>
 <blockquote>
 <p>每次读写请求都将经过Master，Master为写请求分配fid，为读请求返回fid对应的Volume地址</p>
 </blockquote>
-<p>###一致性<br>Master通过raft来保证元数据的高可用性，当节点出现故障时，可实现秒级切换不丢数据。<br>多个Maste由Raft保证同一时间有一个主来复杂处理请求，其它的节点都将请求转发到主上。</p>
+<a id="more"></a>
+<h3 id="一致性">一致性</h3><p>Master通过raft来保证元数据的高可用性，当节点出现故障时，可实现秒级切换不丢数据。<br>多个Maste由Raft保证同一时间有一个主来复杂处理请求，其它的节点都将请求转发到主上。</p>
 <h2 id="VolumeServer">VolumeServer</h2><p>处理数据的读写请求, 维护文件的元数据信息，即文件在volume的位置。</p>
-<p>###文件元数据容量<br>每个Volume默认为32G，元数据只有8字节。假设Master有32G，简单计算可得，至少能存储32/8<em>32G = 128GB </em> GB的空间，空间不是问题。</p>
-<p>###与Master的交互</p>
-<p>VolumeServer通过心跳向Master报告自己当前管理的volume和最大能接收多少volume。</p>
-<p>###复制</p>
-<p>多种粒度的Replication，replication基于volume level。有关replication的细节可以看<a href="https://github.com/medcl/weedfs/blob/master/note/replication.txt" target="_blank" rel="external">这里</a>：</p>
-<p>##读写流程</p>
-<p>###写</p>
-<ol>
+<h3 id="文件元数据容量">文件元数据容量</h3><p>每个Volume默认为32G，元数据只有8字节。假设Master有32G，简单计算可得，至少能存储32/8<em>32G = 128GB </em> GB的空间，空间不是问题。</p>
+<h3 id="与Master的交互">与Master的交互</h3><p>VolumeServer通过心跳向Master报告自己当前管理的volume和最大能接收多少volume。</p>
+<h3 id="复制">复制</h3><p>多种粒度的Replication，replication基于volume level。有关replication的细节可以看<a href="https://github.com/medcl/weedfs/blob/master/note/replication.txt" target="_blank" rel="external">这里</a>：</p>
+<h2 id="读写流程">读写流程</h2><h3 id="写">写</h3><ol>
 <li>客户端发送写请求给Master(没有具体数据信息)，获取可写的VolumeServer URL，以及分配的fid。</li>
 </ol>
 <p>curl <a href="http://localhost:9333/dir/assign" target="_blank" rel="external">http://localhost:9333/dir/assign</a><br>resp: {“count”:1,”fid”:”3,01637037d6”,”url”:”127.0.0.1:8080”,”publicUrl”:”localhost:8080”}</p>
@@ -168,8 +150,7 @@
 <li>客户端通过url以及fid向VolumeServer发送具体的数据信息。</li>
 </ol>
 <p>curl -F file=@/home/chris/myphoto.jpg <a href="http://127.0.0.1:8080/3,01637037d6" target="_blank" rel="external">http://127.0.0.1:8080/3,01637037d6</a><br>返回成功后，客户端需保存/home/chris/myphoto.jpg -&gt; 3,01637037d6 的映射。</p>
-<p>###读</p>
-<ol>
+<h3 id="读">读</h3><ol>
 <li>客户端从数据库中获取文件名对应的fid。<br>客户端请求Master，查询volumeid对应的VolumeServer位置</li>
 </ol>
 <p>curl <a href="http://localhost:9333/dir/lookup?volumeId=3" target="_blank" rel="external">http://localhost:9333/dir/lookup?volumeId=3</a><br>resp: {“locations”:[{“publicUrl”:”localhost:8080”,”url”:”localhost:8080”}]}</p>
@@ -177,12 +158,16 @@
 <li>客户端请求VolumeServer获取文件的具体内容</li>
 </ol>
 <p>curl <a href="http://localhost:8080/3,01637037d6" target="_blank" rel="external">http://localhost:8080/3,01637037d6</a></p>
-<p>#讨论</p>
-<p>Weedfs设计思路简单，很大的节约了管理成本，性能不错(需要根据不同场景测试)，对于小公司是个很好地选择。</p>
+<h1 id="讨论">讨论</h1><p>Weedfs设计思路简单，很大的节约了管理成本，性能不错(需要根据不同场景测试)，对于小公司是个很好地选择。</p>
 <p>但需要注意到其切片的粒度较大，当出现节点不可用时，数据迁移需要耗费很长的时间，可能会造成短时间不可用。</p>
 <p>假设内部宽带为20MB/s，那么迁移32G的数据需要：32G / 20MB = 1600s 大约需要半个小时<br>由客户端维护文件到volume的映射，一定程度增加了使用成本。</p>
-<p>参考资料</p>
-<p>WeedFS官网，上面有关于weedfs与ceph,hdfs等的比较： <a href="https://code.google.com/p/weed-fs/" target="_blank" rel="external">https://code.google.com/p/weed-fs/</a><br>WeedFS细致文档：<a href="http://weed-fs.readthedocs.org/en/latest/index.html" target="_blank" rel="external">http://weed-fs.readthedocs.org/en/latest/index.html</a><br>Finding a needle in Haystack: Facebook’s photo storage<br>Replication细节：<a href="https://github.com/medcl/weedfs/blob/master/note/replication.txt" target="_blank" rel="external">https://github.com/medcl/weedfs/blob/master/note/replication.txt</a><br>大规模分布式存储系统，第四章文件系统</p>
+<h1 id="扩展阅读">扩展阅读</h1><ol>
+<li>WeedFS官网，上面有关于weedfs与ceph,hdfs等的比较： <a href="https://code.google.com/p/weed-fs/" target="_blank" rel="external">https://code.google.com/p/weed-fs/</a></li>
+<li>WeedFS细致文档：<a href="http://weed-fs.readthedocs.org/en/latest/index.html" target="_blank" rel="external">http://weed-fs.readthedocs.org/en/latest/index.html</a></li>
+<li>Finding a needle in Haystack: Facebook’s photo storage</li>
+<li>Replication细节：<a href="https://github.com/medcl/weedfs/blob/master/note/replication.txt" target="_blank" rel="external">https://github.com/medcl/weedfs/blob/master/note/replication.txt</a></li>
+<li>大规模分布式存储系统，第四章文件系统</li>
+</ol>
 
       
     </div>

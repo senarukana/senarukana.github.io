@@ -222,15 +222,22 @@
     
     <div class="article-entry" itemprop="articleBody">
       
-        <p>#特点</p>
-<blockquote>
-<ul>
+        <p>weed-fs是一款由Go语言实现的，基于facebook <a href="https://www.usenix.org/legacy/event/osdi10/tech/full_papers/Beaver.pdf">haystack论文</a>的面向blob的分布式存储系统，部分应用于google内部。该系统具有代码量较少，结构简单，且不包含第三方依赖，易于部署的特点。本文将简单介绍一下这个系统。</p>
+<h1 id="特点">特点</h1><ul>
 <li>针对大量小文件的文件系统。</li>
 <li>中心化设计，架构简单，代码量少，由go编写易于维护。</li>
 <li>各种粒度的复制级别：包括同步/异步rackaware， datacenter aware的复制等。</li>
 <li>无单节点故障，Master之间Raft协议保证数据可靠性，节点故障可秒级切换。</li>
 <li>支持各种级别的数据压缩</li>
-<li>支持目录结构，记录目录元信息。
+<li>支持目录结构，记录目录元信息。</li>
+</ul>
+<h1 id="设计">设计</h1><p>设计很大程度上借鉴的facebook的论文:Finding a neddle in the hay stack</p>
+<p>系统由两个部分构成：Master和VolumeServer。</p>
+<h2 id="Master">Master</h2><p>Master: 维护Volume的元数据，和VolumeServer的状态</p>
+<h3 id="元数据管理">元数据管理</h3><p>为了限制Master内存使用，它只维护volumeid到VolumeServer的映射关系。 客户端需要<strong>自己</strong>维护文件到fid的映射，如存放到memcached或者mysql。<br>关系如下：<strong>topology/data_center/rack/data_node/volumes</strong><br>请求处理方式</p>
+<blockquote>
+<p>每次读写请求都将经过Master，Master为写请求分配fid，为读请求返回fid对应的Volume地址</p>
+</blockquote>
         
           <p class="article-more-link">
             <a href="/2015/01/10/weedfs/#more">Read More</a>
