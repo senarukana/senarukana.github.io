@@ -5,21 +5,21 @@
   
   <title>记一次连接超时问题 | Zhe Li&#39;s Blog</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-  <meta name="description" content="过去半年里参与了阿里云Redis数据库的开发，随着用户数的逐渐增多，遇到了许许多多的技术上的问题，这里将写几篇关于网络上踩到的坑，希望日后对他人起到一点借鉴作用。本篇文章讲系统遇到的连接超时问题。
-系统介绍在说问题之前，首先简单介绍一下我们系统在数据层的架构，它主要包含4个组件，负载均衡服务器SLB，代理服务器Proxy，后端Redis服务器，以及一个探测系统Detector负责诊断数据链路的各个">
+  <meta name="description" content="过去半年里参与了阿里云Redis数据库的开发，随着用户数的逐渐增多，遇到了许许多多的技术上的问题，本篇文章讲系统遇到的连接超时问题，希望日后对他人起到一点借鉴作用。
+系统介绍在说问题之前，首先简单介绍一下我们系统在数据层的架构，它主要包含4个组件，负载均衡服务器SLB，代理服务器Proxy，后端Redis服务器，以及一个探测系统Detector负责诊断数据链路的各个部分的网络联通状态，架构如下图。">
 <meta property="og:type" content="article">
 <meta property="og:title" content="记一次连接超时问题">
 <meta property="og:url" content="http://yoursite.com/2016/03/04/redis_proxy_connect_timeout/index.html">
 <meta property="og:site_name" content="Zhe Li's Blog">
-<meta property="og:description" content="过去半年里参与了阿里云Redis数据库的开发，随着用户数的逐渐增多，遇到了许许多多的技术上的问题，这里将写几篇关于网络上踩到的坑，希望日后对他人起到一点借鉴作用。本篇文章讲系统遇到的连接超时问题。
-系统介绍在说问题之前，首先简单介绍一下我们系统在数据层的架构，它主要包含4个组件，负载均衡服务器SLB，代理服务器Proxy，后端Redis服务器，以及一个探测系统Detector负责诊断数据链路的各个">
+<meta property="og:description" content="过去半年里参与了阿里云Redis数据库的开发，随着用户数的逐渐增多，遇到了许许多多的技术上的问题，本篇文章讲系统遇到的连接超时问题，希望日后对他人起到一点借鉴作用。
+系统介绍在说问题之前，首先简单介绍一下我们系统在数据层的架构，它主要包含4个组件，负载均衡服务器SLB，代理服务器Proxy，后端Redis服务器，以及一个探测系统Detector负责诊断数据链路的各个部分的网络联通状态，架构如下图。">
 <meta property="og:image" content="http://yoursite.com/image/ali_redis_data_link.png">
 <meta property="og:image" content="http://yoursite.com/image/ali_redis_data_link_example.png">
-<meta property="og:updated_time" content="2016-03-06T03:38:25.000Z">
+<meta property="og:updated_time" content="2016-03-06T09:02:43.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="记一次连接超时问题">
-<meta name="twitter:description" content="过去半年里参与了阿里云Redis数据库的开发，随着用户数的逐渐增多，遇到了许许多多的技术上的问题，这里将写几篇关于网络上踩到的坑，希望日后对他人起到一点借鉴作用。本篇文章讲系统遇到的连接超时问题。
-系统介绍在说问题之前，首先简单介绍一下我们系统在数据层的架构，它主要包含4个组件，负载均衡服务器SLB，代理服务器Proxy，后端Redis服务器，以及一个探测系统Detector负责诊断数据链路的各个">
+<meta name="twitter:description" content="过去半年里参与了阿里云Redis数据库的开发，随着用户数的逐渐增多，遇到了许许多多的技术上的问题，本篇文章讲系统遇到的连接超时问题，希望日后对他人起到一点借鉴作用。
+系统介绍在说问题之前，首先简单介绍一下我们系统在数据层的架构，它主要包含4个组件，负载均衡服务器SLB，代理服务器Proxy，后端Redis服务器，以及一个探测系统Detector负责诊断数据链路的各个部分的网络联通状态，架构如下图。">
   
   
     <link rel="icon" href="favicon.png">
@@ -112,13 +112,15 @@
     <div class="article-entry" itemprop="articleBody">
       
                 
-        <p>过去半年里参与了阿里云Redis数据库的开发，随着用户数的逐渐增多，遇到了许许多多的技术上的问题，这里将写几篇关于网络上踩到的坑，希望日后对他人起到一点借鉴作用。本篇文章讲系统遇到的连接超时问题。</p>
+        <p>过去半年里参与了阿里云Redis数据库的开发，随着用户数的逐渐增多，遇到了许许多多的技术上的问题，本篇文章讲系统遇到的连接超时问题，希望日后对他人起到一点借鉴作用。</p>
 <h1 id="系统介绍">系统介绍</h1><p>在说问题之前，首先简单介绍一下我们系统在数据层的架构，它主要包含4个组件，负载均衡服务器SLB，代理服务器Proxy，后端Redis服务器，以及一个探测系统Detector负责诊断数据链路的各个部分的网络联通状态，架构如下图。<br><img src="/image/ali_redis_data_link.png" alt="Aliyun Redis数据链路"></p>
 <p>每个Redis实例对应一个域名xx.region.kvstore.aliyuncs.com，端口都为6379，用户通过该域名进行访问。每个域名将通过DNS解析成一个唯一的VIP。</p>
 <p>每个VIP对应一组后端的Proxy，通过SLB将请求进行转发。分组的原因是为了避免问题的影响范围(我们限制每个组里的Proxy负责的后端的Redis实例数目（200个为一组)，防止因为某个客户触发了Proxy的BUG影响所有客户。</p>
-<p>VIP到Proxy的链路由负责均衡服务器SLB控制，它是四层的负载均衡器，采用透传模式，负责用户请求的接入并把用户的VIP放在TCP包的Option字段中，请求的回复直接通过Proxy返回。<br>Proxy通过TCP包的Option字段，获取用户需要访问的VIP，接着将请求转发到后端Redis实例。<br>Redis是直接部署在物理机之上，每台物理机平均部署超过200个Redis实例。</p>
+<p>VIP到Proxy的链路由负责均衡服务器SLB控制，它是四层的负载均衡器，采用透传模式，负责用户请求的接入并把用户的VIP放在TCP包的Option字段中，请求的回复直接通过Proxy返回。<br>Proxy通过TCP包的Option字段，获取用户需要访问的VIP，接着将请求转发到后端Redis实例。由于需要全兼容redis协议，支持事务和Pub/Sub, Proxy采用的是一对一的连接方式，用户建立多少连接，Proxy也随即建立多少连接。<br>Redis是直接部署在物理机之上，每台物理机平均部署超过200个Redis实例。</p>
 <a id="more"></a>
-<h1 id="问题现象">问题现象</h1><p>这个问题最初是由少数几个php客户提出，它们在单台客户机访问&gt;1个Redis实例过程中，使用短连接偶尔出现连接超时问题。这个问题在起初并没有得到充分的重视，我们没有能有效复现出该问题。只是建议用户将短连接改成长连接，这样之后问题得以很大成都缓解。而客户也并不愿意继续追查，不了了之。直到在我们开发探测系统的过程中，问题才得以发现。<br>探测系统的基本原理是通过一台探测机，定期向所有的Redis实例发出连接请求和PING命令，检查链路的联通状况。探测系统在线下测试一切正常，但是当系统在线上部署时出现了很大的问题。探测过程中频繁出现Redis连接超时问题，且随着探测实例数目的增多，该问题出现的概率越高。当超过1000个实例的时候，几乎每次探测必现。每次报出的实例都不一样，且进行重试之后一般又能连接上，其Log日志如下。<br><figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">I1028 <span class="number">18</span>:<span class="number">50</span>:<span class="number">08.678743</span> client(<span class="number">10.101</span>.<span class="number">72.139</span>:<span class="number">20426</span>) connect to instance <span class="number">0</span>f4b7c2496714dff(<span class="number">10.102</span>.<span class="number">46.53</span>:<span class="number">6379</span>) timeout, retry <span class="built_in">times</span> <span class="number">1</span></span><br><span class="line">I1028 <span class="number">18</span>:<span class="number">50</span>:<span class="number">08.678749</span> client(<span class="number">10.101</span>.<span class="number">72.139</span>:<span class="number">19124</span>) connect to instance <span class="number">4</span>c4b7c25552714dee(<span class="number">10.102</span>.<span class="number">46.53</span>:<span class="number">6379</span>) timeout, retry <span class="built_in">times</span> <span class="number">1</span></span><br><span class="line">I1028 <span class="number">18</span>:<span class="number">50</span>:<span class="number">08.683749</span> client(<span class="number">10.101</span>.<span class="number">72.139</span>:<span class="number">51714</span>) connect to d123a4351ecd1256(<span class="number">10.102</span>.<span class="number">46.53</span>:<span class="number">6379</span>) timeout, retry <span class="built_in">times</span> <span class="number">1</span></span><br><span class="line">I1028 <span class="number">18</span>:<span class="number">50</span>:<span class="number">08.683749</span> client(<span class="number">10.101</span>.<span class="number">72.139</span>:<span class="number">36471</span>) connect to ea1e21345c559s9a(<span class="number">10.102</span>.<span class="number">46.53</span>:<span class="number">6379</span>) timeout, retry <span class="built_in">times</span> <span class="number">2</span></span><br><span class="line">I1028 <span class="number">18</span>:<span class="number">50</span>:<span class="number">08.678821</span> client(<span class="number">10.101</span>.<span class="number">72.139</span>:<span class="number">36271</span>) connect to d5a1e4652259484e(<span class="number">10.102</span>.<span class="number">46.53</span>:<span class="number">6379</span>) timeout, retry <span class="built_in">times</span> <span class="number">1</span></span><br></pre></td></tr></table></figure></p>
+<h1 id="问题现象">问题现象</h1><p>这个问题最初是由少数几个php客户提出，它们在单台客户机访问&gt;1个Redis实例过程中，使用短连接偶尔出现连接超时问题。这个问题在起初并没有得到充分的重视，我们没有能有效复现出该问题。只是建议用户将短连接改成长连接，这样之后问题得以很大成都缓解。而客户也并不愿意继续追查，不了了之。直到在我们开发探测系统的过程中，问题才得以发现。<br>探测系统的基本原理是通过一台探测机，定期向所有的Redis实例发出连接请求和PING命令，检查链路的联通状况。</p>
+<p>探测系统在线下测试一切正常，但是当系统在线上部署时在透过SLB探测实例链路时出现了问题。探测过程中频繁出现Redis连接超时问题，且随着探测实例数目的增多，该问题出现的概率越高。当超过1000个实例的时候，几乎每次探测必现。每次报出的实例都不一样，且进行重试之后一般又能连接上，其Log日志如下。<br><figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">I1028 <span class="number">18</span>:<span class="number">50</span>:<span class="number">08.678743</span> client(<span class="number">10.101</span>.<span class="number">72.139</span>:<span class="number">20426</span>) connect to instance <span class="number">0</span>f4b7c2496714dff(<span class="number">10.102</span>.<span class="number">46.53</span>:<span class="number">6379</span>) timeout, retry <span class="built_in">times</span> <span class="number">1</span></span><br><span class="line">I1028 <span class="number">18</span>:<span class="number">50</span>:<span class="number">08.678749</span> client(<span class="number">10.101</span>.<span class="number">72.139</span>:<span class="number">19124</span>) connect to instance <span class="number">4</span>c4b7c25552714dee(<span class="number">10.102</span>.<span class="number">46.53</span>:<span class="number">6379</span>) timeout, retry <span class="built_in">times</span> <span class="number">1</span></span><br><span class="line">I1028 <span class="number">18</span>:<span class="number">50</span>:<span class="number">08.683749</span> client(<span class="number">10.101</span>.<span class="number">72.139</span>:<span class="number">51714</span>) connect to instance d123a4351ecd1256(<span class="number">10.102</span>.<span class="number">46.53</span>:<span class="number">6379</span>) timeout, retry <span class="built_in">times</span> <span class="number">1</span></span><br><span class="line">I1028 <span class="number">18</span>:<span class="number">50</span>:<span class="number">08.683749</span> client(<span class="number">10.101</span>.<span class="number">72.139</span>:<span class="number">36471</span>) connect to instance ea1e21345c559s9a(<span class="number">10.102</span>.<span class="number">46.53</span>:<span class="number">6379</span>) timeout, retry <span class="built_in">times</span> <span class="number">2</span></span><br><span class="line">I1028 <span class="number">18</span>:<span class="number">50</span>:<span class="number">08.678821</span> client(<span class="number">10.101</span>.<span class="number">72.139</span>:<span class="number">36271</span>) connect to instance d5a1e4652259484e(<span class="number">10.102</span>.<span class="number">46.53</span>:<span class="number">6379</span>) timeout, retry <span class="built_in">times</span> <span class="number">1</span></span><br></pre></td></tr></table></figure></p>
+<p>但同时直接探测Proxy和直接探测Redis实例链路则没有问题。</p>
 <h1 id="问题分析">问题分析</h1><p>通过在Client和Proxy分别抓包发现。超时请求在在客户端看起来是SYN丢包，而在Proxy服务器端的行为是诡异的直接不响应该SYN连接请求。</p>
 <p>为了避免干扰，将Proxy单独拿出进行测试，该问题仍然稳定复现，且连接请求不需要太多，有时低于100/s请求时问题都能复现。</p>
 <p>而如果将4层负载均衡SLB换成7层的负载均衡该问题将消失。那么问题来了，为什么7层负载均衡没有问题，而4层负载均衡存在问题呢？</p>
@@ -135,7 +137,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://yoursite.com/2016/03/04/redis_proxy_connect_timeout/" data-id="cilg0f8ra0000x0jdfg34ngrw" class="article-share-link">分享到</a>
+      <a data-url="http://yoursite.com/2016/03/04/redis_proxy_connect_timeout/" data-id="cilgc9wak000pjujdm4d9b2pd" class="article-share-link">分享到</a>
       
       
   <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/system/">system</a></li></ul>
