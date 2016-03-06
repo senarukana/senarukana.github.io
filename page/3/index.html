@@ -77,6 +77,73 @@
     <div class="outer">
       
       <section id="main">
+      <article id="post-candy" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-inner">
+    
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2015/02/21/candy/">candy</a>
+    </h1>
+  
+
+        <div class="article-meta">
+          
+  <div class="article-date">
+    <i class="fa fa-calendar"></i>
+    <a href="/2015/02/21/candy/">
+      <time datetime="2015-02-20T16:00:24.000Z" itemprop="datePublished">2015-02-21</time>
+    </a>
+  </div>
+
+
+          
+        </div>
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+                
+        <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">There are N children standing in a line. Each child is assigned a rating value.&#10;You are giving candies to these children subjected to the following requirements:&#10;Each child must have at least one candy.&#10;Children with a higher rating get more candies than their neighbors.</span><br></pre></td></tr></table></figure>
+<ol>
+<li>分治法</li>
+</ol>
+<p>将小孩分成两边，分别计算每一边需要最优糖果分配。<br>在合并时，有两种边界情况需要考虑，这里设mid为二分中点，左边界为mid,右边界为mid+1，最优糖果分配数组为candy：<br>a) rating[mid] &gt; rating[mid+1] and candy[mid] &lt; candy[mid+1]<br>此时左边界违背了题中条件，需要调整左边界rating值为右边界值+1，并接着调整左边小孩的值。<br>b) rating[mid] &lt; rating[mid+1] and candy[mid] &gt; candy[mid+1]<br>此时右边界违背了题中条件，需要调整右边界rating值为左边界+1，并接着调整右边小孩的值。</p>
+<p>具体代码如下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">def candyUtil(ratings, left, right, candies):&#10;    if left == right:&#10;        candies[left] = 1&#10;        return 1&#10;    mid = (left+right) / 2&#10;    leftCandy = candyUtil(ratings, left, mid, candies)&#10;    rightCandy = candyUtil(ratings, mid+1, right, candies)&#10;    if ratings[mid] &#60; ratings[mid+1]:&#10;        if candies[mid] &#62;= candies[mid+1]:&#10;            j = mid+1&#10;            while j &#60;= right and ratings[j] &#62; ratings[j-1] and candies[j] &#60;= candies[j-1]:&#10;                rightCandy += candies[j-1]+1-candies[j]&#10;                candies[j] = candies[j-1]+1&#10;                j += 1&#10;    elif ratings[mid] &#62; ratings[mid+1]:&#10;        if candies[mid] &#60;= candies[mid+1]:&#10;             j = mid&#10;             while j &#62;= 0 and ratings[j] &#62; ratings[j+1] and candies[j] &#60;= candies[j+1]:&#10;                leftCandy += candies[j+1]+1-candies[j]&#10;                candies[j] = candies[j+1]+1&#10;                j -= 1&#10;    print left, right, candies&#10;    return leftCandy+rightCandy&#10;&#10;def candyDivide(ratings):&#10;    return candyUtil(a, 0, len(a)-1, [1]*len(ratings))</span><br></pre></td></tr></table></figure></p>
+<p>递推公式为T(n) = 2T(n/2) + O(n)<br>时间复杂度为O(n)，空间复杂度为O(n)</p>
+<ol>
+<li>贪心算法</li>
+</ol>
+<p>采用类似贪心思想，扫描数组两次。<br>第一次从左往右扫描，当rating[i] &gt; rating[i-1]时，candy[i] = candy[i-1]+1</p>
+<blockquote>
+<p>保证如果第i个孩子的rating值如果大于其左边i-1孩子的值，那么它分得的糖果一定比左边的多。 </p>
+</blockquote>
+<p>第二次从右往左扫描，，当rating[i] &gt; rating[i+1]时，candy[i] = max(candy[i], candy[i+1]+1)</p>
+<blockquote>
+<p>保证第i个孩子的rating值如果大于其右边i+1孩子的值，那么他分得的糖果一定比右边孩子多。</p>
+</blockquote>
+<p>两次扫描，分别保证了孩子左边和右边情况，并且一定是最优的。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">def candy(self, ratings):&#10;    ret = 0&#10;    c = [1] * len(ratings)&#10;    for i in range(1, len(ratings)):&#10;        if ratings[i] &#62; ratings[i-1]:&#10;            c[i] = c[i-1]+1&#10;        else:&#10;            c[i] = 1&#10;    ret = c[-1]&#10;    for i in reversed(range(len(c)-1)):&#10;        if ratings[i] &#62; ratings[i+1]:&#10;            c[i] = max(c[i+1]+1, c[i])&#10;        ret += c[i]&#10;    return ret</span><br></pre></td></tr></table></figure></p>
+<p>时间复杂度为O(n)，空间复杂度为O(n)</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://yoursite.com/2015/02/21/candy/" data-id="cih0i58kz001khqw4ptaynich" class="article-share-link">分享到</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/algorithm/">algorithm</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+    
       <article id="post-dropegg" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-inner">
     
@@ -679,81 +746,6 @@
 
 
     
-      <article id="post-bit-magic" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-inner">
-    
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2015/01/27/bit-magic/">BitMagic</a>
-    </h1>
-  
-
-        <div class="article-meta">
-          
-  <div class="article-date">
-    <i class="fa fa-calendar"></i>
-    <a href="/2015/01/27/bit-magic/">
-      <time datetime="2015-01-27T05:02:03.000Z" itemprop="datePublished">2015-01-27</time>
-    </a>
-  </div>
-
-
-          
-        </div>
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-                
-        <p>#逆转比特位</p>
-<blockquote>
-<p>给定数字n，求颠倒每一位bit后产生的结果。</p>
-<ol>
-<li>循环移位<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">unsigned int count = sizeof(int)*8&#10;unsigned int reverse_num = 0&#10;while num != 0:&#10;    reverse_num |= (n &#38; 1)&#60;&#60;count;&#10;    n &#62;&#62;= 1;&#10;    --count;&#10;return reverse_num</span><br></pre></td></tr></table></figure>
-</li>
-</ol>
-</blockquote>
-<ol>
-<li>二分<br>两两之间、再求四四之间、递进求到16进行互相的交换<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">n = (((n &#38; 0x55555555)&#60;&#60;1) | ((n&#62;&#62;1) &#38; 0x55555555));&#10;n = (((n &#38; 0x33333333)&#60;&#60;2) | ((n&#62;&#62;2) &#38; 0x33333333));&#10;n = (((n &#38; 0x0f0f0f0f)&#60;&#60;4) | ((n&#62;&#62;4) &#38; 0x0f0f0f0f));&#10;n = (((n &#38; 0x00ff00ff)&#60;&#60;8) | ((n&#62;&#62;8) &#38; 0x00ff00ff));&#10;n = (((n &#38; 0x0000ffff)&#60;&#60;16) | ((n&#62;&#62;16) &#38; 0x0000ffff));&#10;return n;</span><br></pre></td></tr></table></figure>
-</li>
-</ol>
-<p>对于数字的移位操作，需要保证数字是无符号整数，否则可能是算数移位 或者 逻辑移位，依赖于具体的实现。</p>
-<p>#整数二进制中1的数量</p>
-<ol>
-<li><p>n &amp; (n-1) 去掉最低1</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">while n:&#10;    c += 1&#10;    n &#38; = n-1</span><br></pre></td></tr></table></figure>
-</li>
-<li><p>n &amp; (-n) 得到最低位1</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">while n:&#10;    c += 1&#10;    n -= n &#38; (-n)</span><br></pre></td></tr></table></figure>
-</li>
-<li><p>二分<br>和Reverse Bit方法类似，先求两两之间、再求四四之间、递进求到16求1的数目</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">n = (n &#38; (0x55555555)) + ((n &#62;&#62; 1) &#38; 0x55555555)&#10;n = (n &#38; (0x33333333)) + ((n &#62;&#62; 2) &#38; 0x33333333)&#10;n = (n &#38; (0x0f0f0f0f)) + ((n &#62;&#62; 4) &#38; 0x0f0f0f0f)&#10;n = (n &#38; (0x00ff00ff)) + ((n &#62;&#62; 8) &#38; 0x00ff00ff)&#10;n = (n &#38; (0x0000ffff)) + ((n &#62;&#62; 16) &#38; 0x0000ffff)&#10;return n</span><br></pre></td></tr></table></figure>
-</li>
-</ol>
-<p>#Next Power of 2<br>通过n &amp; (n-1) 获取最高位，再左移一位即可，注意检查是否为0:<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">next_pow = n &#38; (n-1)&#10;if next_pow == 0:&#10;    return n&#10;return next_pow &#60;&#60; 1</span><br></pre></td></tr></table></figure></p>
-<p>#A * B 不能用乘法，除法<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">res = 0&#10;isNeg = (a &#62; 0 and b &#60; 0) or (a &#60; 0 and b &#62; 0)&#10;for i in range(63):&#10;    if ((b &#62;&#62; i) &#38; 1) &#62; 0:&#10;        tmp = res + (a &#60;&#60; i) #&#32771;&#34385;&#26159;&#21542;&#36234;&#30028;&#10;        if tmp &#60; res:&#10;            return isNeg ? MIN_INT : MAXINT&#10;        res = tmp&#10;return res</span><br></pre></td></tr></table></figure></p>
-<p>#A / B 不能用乘法，除法<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">res = 0&#10;isNeg = (a &#62; 0 and b &#60; 0) or (a &#60; 0 and b &#62; 0)&#10;while a &#62;= b:&#10;    power = 1&#10;    while ((b&#60;&#60;power) &#62;= (b&#60;&#60;(power-1))) and (b&#60;&#60;power) &#60;= a:&#10;        power += 1&#10;    res |= 1&#60;&#60;(power-1)&#10;    a -= (b&#60;&#60;(power-1))&#10;if isNeg:&#10;    res *= -1</span><br></pre></td></tr></table></figure></p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://yoursite.com/2015/01/27/bit-magic/" data-id="cih0i58l1001mhqw49nz7f7v1" class="article-share-link">分享到</a>
-      
-      
-  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/algorithm/">algorithm</a></li></ul>
-
-    </footer>
-  </div>
-  
-</article>
-
-
-
-    
       <nav id="page-nav">
         <a class="extend prev" rel="prev" href="/page/2/">&laquo; 上一页</a><a class="page-number" href="/">1</a><a class="page-number" href="/page/2/">2</a><span class="page-number current">3</span><a class="page-number" href="/page/4/">4</a><a class="extend next" rel="next" href="/page/4/">下一页 &raquo;</a>
       </nav>
@@ -766,6 +758,15 @@
     <h3 class="widget-title">最新文章</h3>
     <div class="widget">
       <ul id="recent-post" class="no-thumbnail">
+        
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category"></p>
+              <p class="item-title"><a href="/2016/03/04/redis_proxy_connect_timeout/" class="title">记一次连接超时问题</a></p>
+              <p class="item-date"><time datetime="2016-03-04T02:10:11.000Z" itemprop="datePublished">2016-03-04</time></p>
+            </div>
+          </li>
         
           <li>
             
@@ -803,15 +804,6 @@
             </div>
           </li>
         
-          <li>
-            
-            <div class="item-inner">
-              <p class="item-category"></p>
-              <p class="item-title"><a href="/2015/06/13/raft/" class="title">raft</a></p>
-              <p class="item-date"><time datetime="2015-06-13T05:11:07.000Z" itemprop="datePublished">2015-06-13</time></p>
-            </div>
-          </li>
-        
       </ul>
     </div>
   </div>
@@ -823,7 +815,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">标签</h3>
     <div class="widget">
-      <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/algorithm/">algorithm</a><span class="tag-list-count">14</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/life/">life</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/system/">system</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tools/">tools</a><span class="tag-list-count">3</span></li></ul>
+      <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/algorithm/">algorithm</a><span class="tag-list-count">14</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/life/">life</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/system/">system</a><span class="tag-list-count">14</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tools/">tools</a><span class="tag-list-count">3</span></li></ul>
     </div>
   </div>
 
@@ -832,7 +824,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">归档</h3>
     <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/11/">November 2015</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/08/">August 2015</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/06/">June 2015</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/05/">May 2015</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/04/">April 2015</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/03/">March 2015</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/02/">February 2015</a><span class="archive-list-count">12</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/01/">January 2015</a><span class="archive-list-count">4</span></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/03/">March 2016</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/11/">November 2015</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/08/">August 2015</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/06/">June 2015</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/05/">May 2015</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/04/">April 2015</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/03/">March 2015</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/02/">February 2015</a><span class="archive-list-count">12</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/01/">January 2015</a><span class="archive-list-count">4</span></li></ul>
     </div>
   </div>
 
@@ -845,7 +837,7 @@
   
   <div class="outer">
     <div id="footer-info" class="inner">
-      &copy; 2015 Zhe Li<br>
+      &copy; 2016 Zhe Li<br>
       Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>. Theme by <a href="http://github.com/ppoffice">PPOffice</a>
     </div>
   </div>
